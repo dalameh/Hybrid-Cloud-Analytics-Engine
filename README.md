@@ -1,9 +1,17 @@
 # Hybrid-Cloud-Analytics-Engine
 
 ![Databricks](https://img.shields.io/badge/Databricks-DLT-E64A19?style=flat-square&logo=databricks&logoColor=white)
+
+
 ![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
+
+
 ![PySpark](https://img.shields.io/badge/PySpark-Medallion%20Architecture-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
+
+
 ![PowerBI](https://img.shields.io/badge/Power%20BI-Executive%20Dashboard-F2C811?style=flat-square&logo=powerbi&logoColor=black)
+
+
 ![Python](https://img.shields.io/badge/Python-CDC%20Agent-3776AB?style=flat-square&logo=python&logoColor=white)
 
 > Enterprise-grade, event-driven ERP analytics pipeline — on-premise relational data continuously replicated to AWS, transformed through a Medallion architecture on Databricks, and served to a live Power BI executive dashboard.
