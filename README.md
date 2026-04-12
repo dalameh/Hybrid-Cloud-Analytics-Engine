@@ -43,24 +43,28 @@ Running complex analytical queries directly against a production on-premise rela
 │   On-Prem ERP (Olist)   │  Python CDC agent · ar_h_commit + OP-coded events
 │   Relational Database   │  Continuous incremental replication
 └───────────┬─────────────┘
-            │  PUT Object (Parquet · Hive-partitioned)
+            │ 
+            │  PUT Object (CSV · Hive-partitioned)
             ▼
 ┌─────────────────────────┐
 │     AWS S3              │  CDK-provisioned landing zone
-│     Landing Zone        │  Lifecycle: Glacier (30d) → Expire (90d)
+│     Landing Zone        │  Lifecycle: Infrequent Access (30d)
 └───────────┬─────────────┘
+            │
             │  s3:ObjectCreated event notification
             ▼
 ┌─────────────────────────┐
 │     AWS SNS             │  erp-pipeline-events topic
 │     Event Fan-out       │  Decouples ingestion from compute
 └───────────┬─────────────┘
+            │
             │  Publish to subscriber
             ▼
 ┌─────────────────────────┐
 │     AWS SQS             │  erp-etl-queue · DLQ: erp-etl-dlq
 │     Work Buffer         │  Auto Loader file notification source
 └───────────┬─────────────┘
+            │
             │  Databricks Auto Loader consumes SQS events
             ▼
 ┌──────────────────────────────────────────────────────────┐
@@ -74,6 +78,7 @@ Running complex analytical queries directly against a production on-premise rela
 │              DLT State · Auto Loader Checkpoint          │
 │              Idempotent · Crash-safe · Schema-evolving   │
 └──────────────────────────┬───────────────────────────────┘
+                           │
                            │  Databricks Workflow · daily @ midnight
                            ▼
 ┌─────────────────────────┐
