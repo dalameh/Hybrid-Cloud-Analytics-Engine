@@ -208,7 +208,6 @@ After each successful pipeline run, `orchestration/pbi_refresh_hook.py` calls th
 | Revenue trend | `gold_order_summary` | Monthly revenue over time |
 | Top sellers | `dim_sellers` + facts | Revenue per seller |
 | Category breakdown | `dim_products` + facts | Revenue by category |
-| Customer geography | `dim_geography` | Customer distribution by state |
 | Delivery SLA | `fact_orders` | Actual vs estimated delivery days |
 | Review sentiment | `fact_reviews` | Score distribution by category |
 
