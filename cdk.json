@@ -1,0 +1,6 @@
+{
+  "app": "python datalake_infra.py",
+  "context": {
+    "@aws-cdk/core:stackRelativeExports": true
+  }
+}
