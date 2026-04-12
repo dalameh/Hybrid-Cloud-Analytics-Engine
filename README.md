@@ -30,7 +30,7 @@
 
 ## 🎯 Business Problem
 
-A retail company needs to migrate on-premise ERP data (CSV exports) to AWS for scalable analytics. They require a cost-efficient, automated system that handles incremental daily loads, ensures data quality, and provides a **Gold Standard star-schema** for Power BI reporting to leadership.
+A retail company needs to migrate on-premise ERP data to AWS for scalable analytics. They require a cost-efficient, automated system that handles incremental daily loads, ensures data quality, and provides a **Gold Standard star-schema** for Power BI reporting to leadership.
 
 Running complex analytical queries directly against a production on-premise relational database degrades OLTP performance, introduces operational risk, and limits the depth of insight available to decision-makers. This engine solves that — replicating the ERP continuously to a cloud-native warehouse without ever touching the source system during business hours.
 
