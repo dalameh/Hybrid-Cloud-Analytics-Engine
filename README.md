@@ -1,3 +1,51 @@
+
+# Hybrid-Cloud ERP Analytics Engine
+
+![Databricks](https://img.shields.io/badge/Databricks-DLT-E64A19?style=flat-square&logo=databricks&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
+![PySpark](https://img.shields.io/badge/PySpark-Medallion%20Architecture-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
+![CDK](https://img.shields.io/badge/AWS-CDK%20IaC-red?style=flat-square&logo=amazon-aws&logoColor=white)
+![PowerBI](https://img.shields.io/badge/Power%20BI-Executive%20Dashboard-F2C811?style=flat-square&logo=powerbi&logoColor=black)
+
+> **Enterprise-grade, event-driven ERP analytics pipeline.** On-premise relational data continuously replicated to AWS, transformed through a Medallion architecture on Databricks DLT, and served to a live Power BI executive dashboard via REST API automation.
+
+---
+
+## 🏗 Architecture Overview
+
+The system architecture is built on the principle of **decoupling ingestion from compute**.
+
+1.  **Ingestion:** A Python CDC agent simulates a live ERP database, pushing incremental Parquet batches to **S3**.
+2.  **Event Mesh:** S3 triggers an **SNS** notification, which fans out to an **SQS** queue. This ensures durability and allows multiple consumers to subscribe to the data stream.
+3.  **Processing:** **Databricks Auto Loader** consumes SQS messages (File Notification mode) to ingest data into a **Medallion Architecture**.
+4.  **Serving:** A **Gold-standard Star Schema** is optimized with **Z-ORDER** and served to **Power BI**.
+5.  **Orchestration:** **Databricks Workflows** manage the pipeline and trigger the **Power BI REST API** for a semantic model refresh upon success.
+
+---
+
+## 🛠 Engineering Highlights
+
+### ☁️ Infrastructure as Code (AWS CDK)
+The entire AWS stack (S3, SNS, SQS, IAM, Lifecycle Policies) is provisioned via **AWS CDK**.
+* **S3 Lifecycle Management:** Automated transition to Glacier after 30 days to optimize storage costs.
+* **Dead Letter Queues (DLQ):** SQS is configured with a DLQ to capture and isolate "poison pill" messages without halting the pipeline.
+
+### 🔄 CDC & Medallion Logic
+The pipeline handles **Change Data Capture** using enterprise standards:
+* **Bronze (Raw):** Auto Loader with **Checkpointing** ensures zero data loss and prevents re-processing files, even after cluster failures.
+* **Silver (Cleansed):** Employs **DLT Expectations** for data quality enforcement. It uses `ar_h_commit` timestamps and `OP` codes (Insert/Update/Delete) to perform idempotent `MERGE` operations.
+* **Gold (Curated):** A Star Schema designed for BI performance. Fact and Dimension tables are **Z-ORDERED** on high-selectivity columns to ensure sub-second dashboard latency.
+
+---
+
+## 📊 Dashboard & Orchestration
+* **Nightly Reconciliation:** While CDC replication is continuous, the DLT pipeline runs on a daily schedule to provide a consistent "Point-in-Time" view for executive reporting.
+* **Automated Refresh:** On successful pipeline completion, a Python hook calls the **Power BI REST API** to trigger a refresh, ensuring leadership always sees the most recent data.
+
+---
+
+
+
 # Hybrid-Cloud-Analytics-Engine
 
 ![Databricks](https://img.shields.io/badge/Databricks-DLT-E64A19?style=flat-square&logo=databricks&logoColor=white)
