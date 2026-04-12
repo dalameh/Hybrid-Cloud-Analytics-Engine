@@ -1,6 +1,6 @@
 # Hybrid-Cloud-Analytics-Engine
 
-![Databricks](https://img.shields.io/badge/Databricks-DLT-E64A19?style=flat-square&logo=databricks&logoColor=white)
+![Databricks](https://img.shields.io/badge/Databricks-DLT%20%C2%B7%20DeltaTables-E64A19?style=flat-square&logo=databricks&logoColor=white)
 
 
 ![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
