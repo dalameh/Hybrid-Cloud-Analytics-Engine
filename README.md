@@ -30,7 +30,7 @@
 
 ## 🎯 Business Problem
 
-#### S3 Landing ZoneThe Challenge: Breaking the Analytical Bottleneck
+#### The Challenge: Breaking the Analytical Bottleneck
 
 An enterprise e-commerce platform is currently constrained by an on-premise ERP system that serves as a single point of failure for both operations and intelligence. Running complex analytical queries against the production relational database creates resource contention, degrading OLTP (Online Transactional Processing) performance and risking operational downtime during peak business hours.
 
