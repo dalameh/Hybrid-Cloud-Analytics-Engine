@@ -99,7 +99,7 @@ The S3 bucket is the raw system of record. Incoming files are partitioned by dat
 
 ### SNS — Event Fan-out
 
-Every `s3:ObjectCreated` event fires a notification to the `erp-pipeline-events` SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. New consumers (alerting, archival, compliance auditing) can subscribe to the topic without modifying a single line of ingestion code. A **subscription filter policy** scopes delivery to Olist dataset prefixes only, preventing internal S3 operations from triggering the pipeline.
+Every `s3:ObjectCreated` event fires a notification to the SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. New consumers (alerting, archival, compliance auditing) can subscribe to the topic without modifying a single line of ingestion code. A **subscription filter policy** scopes delivery to Olist dataset prefixes only, preventing internal S3 operations from triggering the pipeline.
 
 ### SQS — Durable Work Buffer
 
@@ -113,7 +113,7 @@ The on-premise ERP is simulated by a Python Boto3 agent performing **Change Data
 
 | Field | Purpose |
 |:---|:---|
-| `ar_h_commit` | Monotonically increasing commit timestamp establishing the exact order of changes across all tables — enabling consistent point-in-time reconstruction of the source database |
+| `AR_H_COMMIT_TIMESTAMP` | Monotonically increasing commit timestamp establishing the exact order of changes across all tables — enabling consistent point-in-time reconstruction of the source database |
 | `OP` | Operation code: `I` (insert) · `U` (update) · `D` (delete) — tells the Silver layer exactly which merge, upsert, or tombstone logic to apply |
 
 The agent runs **continuously**, uploading incremental Parquet batches to S3 throughout the day. The DLT pipeline then processes these accumulated CDC events in a single nightly run — separating the concern of data availability (continuous replication) from analytical consistency (daily clean Gold layer for reporting).
@@ -128,7 +128,7 @@ The pipeline is implemented as a **Databricks Delta Live Tables** pipeline spann
 
 ### Bronze — Raw Ingestion & Checkpointing
 
-`analytics/transformations/01_bronze.py`
+`analytics/transformations/bronze.py`
 
 The Bronze layer uses **Databricks Auto Loader** in file notification mode, consuming SQS events to discover new S3 objects. Data lands in Bronze as-is — raw, unmodified, with no type casting or business logic applied. The only additions are pipeline metadata columns (`_source_file`, `_ingestion_timestamp`) for end-to-end lineage tracking. Each Olist entity lands in its own Bronze **Delta table**: orders, order items, customers, products, payments, reviews, sellers, and geolocation.
 
@@ -142,7 +142,7 @@ The Bronze layer uses **Databricks Auto Loader** in file notification mode, cons
 
 ### Silver — Data Quality & CDC Upserts
 
-`analytics/transformations/02_silver.py`
+`analytics/transformations/silver.py`
 
 Silver reads from Bronze and applies the pipeline's **data quality layer** via DLT Expectations. Every table has explicit, declarative rules governing what constitutes a valid record. Violations are handled at defined severity levels:
 
@@ -158,12 +158,12 @@ Beyond quality enforcement, Silver applies the CDC **`OP` codes** against the `a
 
 ### Gold — Star Schema & Query Optimisation
 
-`analytics/transformations/03_gold.py`
+`analytics/transformations/gold.py`
 
 Gold is the analytics-serving layer. Tables are modelled as a **star schema** with clear separation of fact and dimension tables:
 
 - **Fact tables** — `fact_orders`, `fact_order_items`, `fact_payments` — transactional measures at event grain (revenue, quantities, delivery times)
-- **Dimension tables** — `dim_customers`, `dim_products`, `dim_sellers`, `dim_geography` — descriptive attributes for Power BI slicing and filtering
+- **Dimension tables** — `dim_customers`, `dim_products`, `dim_sellers` — descriptive attributes for Power BI slicing and filtering
 
 Tables are **partitioned** on date columns (`order_month`, `order_year`) so Power BI queries filtering by time period scan only the relevant partitions rather than the full table. **Z-ORDER clustering** is applied on high-selectivity filter columns (`order_status`, `product_category`, `seller_state`), co-locating related values on the same Delta data files — enabling sub-second dashboard response times over large datasets. Pre-aggregated summary tables materialise the most expensive calculations once at pipeline time so the dashboard never recomputes them on the fly.
 
