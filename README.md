@@ -1,8 +1,4 @@
 # Hybrid-Cloud-Analytics-Engine
-Olist ETL PIPELINE using Medallion Architecture on Databricks and POWER BI for visualization. 
-# Hybrid-Cloud ERP Analytics Engine
-
-# Hybrid-Cloud-Analytics-Engine
 
 > Bridging on-premises relational ERP data to a cloud-native analytics platform — event-driven, medallion-architected, and continuously replicated.
 
