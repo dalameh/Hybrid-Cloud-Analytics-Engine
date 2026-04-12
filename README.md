@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-CDC%20Agent%20Script-3776AB?style=flat-square&logo=python&logoColor=white)
 
 
-![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)\
+![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
 
 
 ![Databricks](https://img.shields.io/badge/Databricks-DLT%20%C2%B7%20DeltaTable-E64A19?style=flat-square&logo=databricks&logoColor=white)
