@@ -32,13 +32,12 @@
 
 #### The Challenge: Breaking the Analytical Bottleneck
 
-An enterprise e-commerce platform is currently constrained by an on-premise ERP system that serves as a single point of failure for both operations and intelligence. Running complex analytical queries against the production relational database creates resource contention, degrading OLTP (Online Transactional Processing) performance and risking operational downtime during peak business hours.
-
-Furthermore, the lack of a scalable, cloud-native infrastructure prevents leadership from accessing real-time insights, as the current environment cannot handle the volume, variety, and velocity of modern retail data.
+> An enterprise e-commerce platform is currently constrained by an on-premise ERP system that serves as a single point of failure for both operations and intelligence. Running complex analytical queries against the production relational database creates resource contention, degrading OLTP (Online Transactional Processing) performance and risking operational downtime during peak business hours.
+> Furthermore, the lack of a scalable, cloud-native infrastructure prevents leadership from accessing real-time insights, as the current environment cannot handle the volume, variety, and velocity of modern retail data.
 
 #### The Solution: An Event-Driven Analytical Ecosystem
 
-This project engineers a high-availability, Hybrid-Cloud Analytics Engine designed to decouple operational workloads from analytical processing. By implementing a continuous Change Data Capture (CDC) strategy, we replicate ERP data to AWS without impacting source system performance.
+> This project engineers a high-availability, Hybrid-Cloud Analytics Engine designed to decouple operational workloads from analytical processing. By implementing a continuous Change Data Capture (CDC) strategy, we replicate ERP data to AWS without impacting source system performance.
 
 ---
 
