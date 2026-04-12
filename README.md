@@ -101,7 +101,7 @@ All AWS infrastructure is provisioned as code using the **AWS CDK**, ensuring th
 
 ### S3 Landing Zone
 
-The S3 bucket is the raw system of record. Incoming files are partitioned by dataset and date using Hive-style keys (`dataset/upload_date=YYYY-mm-dd`), enabling efficient partition pruning downstream without full bucket scans. A CDK-managed **lifecycle policy** automatically transitions objects to S3 Infrequent Access after 30 days and expires them at 90 days — keeping storage costs bounded as data accumulates indefinitely. Versioning is enabled to protect against accidental overwrites during replication.
+The S3 bucket is the raw system of record. Incoming files are partitioned by dataset and date using Hive-style keys (`dataset/year=/month=/day=`), enabling efficient partition pruning downstream without full bucket scans. A CDK-managed **lifecycle policy** automatically transitions objects to S3 Infrequent Access after 30 days and expires them at 90 days — keeping storage costs bounded as data accumulates indefinitely. Versioning is enabled to protect against accidental overwrites during replication.
 
 ### SNS — Event Fan-out
 
