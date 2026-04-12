@@ -1,0 +1,6 @@
+product_id,product_category_name,product_name_lenght,product_description_lenght,product_photos_qty,product_weight_g,product_length_cm,product_height_cm,product_width_cm,AR_H_COMMIT_TIMESTAMP,OP
+466c3d5cdc2189e98333b68c00a1c756,cama_mesa_banho,35.0,444.0,1.0,650.0,30.0,3.0,19.0,2018-08-08 00:01:34,I
+1010bcae3110d01e187c7fcf789207bc,beleza_saude,60.0,918.0,1.0,150.0,22.0,3.0,15.0,2018-08-08 00:38:57,I
+7ae27ce0834f80f4e3779fd06ca9ce83,beleza_saude,37.0,1096.0,1.0,1050.0,17.0,14.0,16.0,2018-08-08 00:43:30,I
+b81e20325ffcfcc0f66604b4fd84badb,papelaria,39.0,256.0,3.0,100.0,16.0,6.0,11.0,2018-08-08 01:17:42,I
+b5e6d813290cd06e3015f41d246512e7,papelaria,32.0,137.0,1.0,250.0,23.0,11.0,13.0,2018-08-08 01:23:58,I

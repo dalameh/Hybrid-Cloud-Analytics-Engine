@@ -1,0 +1,9 @@
+product_id,product_category_name,product_name_lenght,product_description_lenght,product_photos_qty,product_weight_g,product_length_cm,product_height_cm,product_width_cm,AR_H_COMMIT_TIMESTAMP,OP
+afc9a91acfb3b23adb16e7bf78ccd78f,fashion_bolsas_e_acessorios,38.0,463.0,4.0,150.0,16.0,5.0,11.0,2018-08-15 00:00:59,I
+ee09ee7eb35b51192aee2dcdeea4286f,brinquedos,45.0,192.0,1.0,550.0,52.0,12.0,16.0,2018-08-15 00:19:02,I
+80a7857c3c116ce0a0c5489f07721f5f,informatica_acessorios,37.0,3331.0,3.0,900.0,26.0,6.0,27.0,2018-08-15 00:26:03,I
+78258dcdffa72f0a40e1fd93b9a52b3d,perfumaria,53.0,1207.0,1.0,525.0,22.0,14.0,23.0,2018-08-15 00:38:31,I
+62633ec6c321f244f230ae94e9864d6a,telefonia,51.0,1350.0,1.0,125.0,21.0,6.0,14.0,2018-08-15 00:39:44,I
+e82b2c6e34cf0e72cd9dd14734dfb607,beleza_saude,47.0,1811.0,5.0,1600.0,22.0,8.0,16.0,2018-08-15 00:46:23,I
+782309e2b81eee24bab8da196e8a82be,bebes,57.0,518.0,3.0,631.0,27.0,12.0,19.0,2018-08-15 05:45:14,I
+ddd089de76da9c400545c6fbf80e2ccb,papelaria,52.0,1235.0,2.0,800.0,20.0,50.0,40.0,2018-08-15 05:46:10,I

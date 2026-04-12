@@ -1,0 +1,3 @@
+customer_id,customer_unique_id,customer_zip_code_prefix,customer_city,customer_state,AR_H_COMMIT_TIMESTAMP,OP
+a71ca5dd13acea58593869d51c812412,8df90e1f672bf05c11aca9a6c1d632b2,84178,castro,PR,2018-08-12 00:43:33,I
+13c520253ccaf41623e063d5e81c4d82,287a7cdacbcda8f842d7719e77cb8457,16700,guararapes,SP,2018-08-12 03:44:50,I

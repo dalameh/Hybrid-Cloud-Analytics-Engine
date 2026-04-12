@@ -1,0 +1,5 @@
+customer_id,customer_unique_id,customer_zip_code_prefix,customer_city,customer_state,AR_H_COMMIT_TIMESTAMP,OP
+358f1d26a875965091ac00815a656597,30981ec392b1ea9ddc964fb988356062,8142,sao paulo,SP,2018-08-12 12:13:28,I
+404a808ea732a8bb8c4552e6b2397375,2934eddaa1eb7e92a038176dec91e73f,6814,embu das artes,SP,2018-08-12 14:15:40,I
+65a6a03c07caddea4ed54b719663fce1,5dd6e6ccbf66521ab5ecd6da289bf673,5351,sao paulo,SP,2018-08-12 16:16:31,I
+e3d372b69974946e6e31f906d16966d5,87556be40ca0f5bf64ba2b5e3d554991,5625,sao paulo,SP,2018-08-12 17:32:42,I

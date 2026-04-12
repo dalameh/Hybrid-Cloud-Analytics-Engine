@@ -1,0 +1,8 @@
+product_id,product_category_name,product_name_lenght,product_description_lenght,product_photos_qty,product_weight_g,product_length_cm,product_height_cm,product_width_cm,AR_H_COMMIT_TIMESTAMP,OP
+ff8ee90ee3170de57403d2d5af1e2c2e,telefonia,46.0,370.0,2.0,50.0,19.0,3.0,11.0,2018-08-10 00:04:34,I
+300666e2638b1c8f5528bd23a6e9dea3,cama_mesa_banho,46.0,1391.0,2.0,1250.0,48.0,10.0,12.0,2018-08-10 00:10:24,I
+44f17cb299c90c0663616f83d55c45ee,moveis_decoracao,58.0,1953.0,1.0,800.0,69.0,11.0,11.0,2018-08-10 00:28:59,I
+920413d47417d9b3e04095f1704409fb,informatica_acessorios,33.0,321.0,1.0,375.0,19.0,12.0,14.0,2018-08-10 00:39:14,I
+60de781b3b48e9203b98776db5bd3035,beleza_saude,41.0,948.0,1.0,250.0,21.0,17.0,17.0,2018-08-10 00:40:57,I
+f1e1861218a3871347e3a9395d88cec8,moveis_decoracao,57.0,1972.0,4.0,450.0,69.0,11.0,11.0,2018-08-10 00:58:28,I
+c312a691cf0af01311be9671eb161a0a,moveis_decoracao,54.0,681.0,4.0,450.0,16.0,21.0,16.0,2018-08-10 03:22:25,I

@@ -1,0 +1,5 @@
+product_id,product_category_name,product_name_lenght,product_description_lenght,product_photos_qty,product_weight_g,product_length_cm,product_height_cm,product_width_cm,AR_H_COMMIT_TIMESTAMP,OP
+c3779d48220f0a47ad0adb07b5d19c3e,beleza_saude,56.0,73.0,1.0,413.0,18.0,11.0,13.0,2018-08-12 00:26:37,I
+475936ba8be53c74b3bce95cb665a0b3,beleza_saude,43.0,1715.0,1.0,450.0,16.0,16.0,16.0,2018-08-12 01:10:43,I
+0de59eddc63167215c972b0d785ffa7b,construcao_ferramentas_construcao,58.0,339.0,1.0,4100.0,26.0,8.0,26.0,2018-08-12 02:11:20,I
+ce99c3515272dee739f2d3eddae0f2cf,relogios_presentes,50.0,687.0,2.0,575.0,37.0,9.0,11.0,2018-08-12 03:44:50,I
