@@ -109,11 +109,13 @@ Every `s3:ObjectCreated` event fires a notification to the SNS topic. SNS decoup
 
 ### SQS — Durable Work Buffer
 
-Rather than relying on traditional S3 directory listing—which is an $O(N)$ operation that becomes increasingly expensive and latent as your object count grows—this architecture utilizes Auto Loader with SQS File Notifications. By shifting to an event-driven discovery model, file detection occurs in $O(1)$ constant time. The moment a file lands in S3, a notification is pushed through SNS to SQS, allowing Databricks to pinpoint exactly which new files need processing without ever performing a full bucket scan.This native AWS event-driven pattern scales to millions of objects without the performance degradation or cost spikes associated with polling. Messages accumulate safely in the queue while the cluster is scaling or mid-run, ensuring no data is lost during compute transitions. A dead-letter queue (DLQ) is integrated to capture and isolate "poison pill" messages that fail repeated processing, preventing malformed records from blocking the pipeline. Furthermore, a visibility timeout of 300 seconds provides the DLT job sufficient time to complete and commit the batch before any re-delivery occurs, maintaining strict processing integrity.
+Rather than relying on traditional S3 directory listing—which is an $O(N)$ operation that becomes increasingly expensive and latent as your object count grows—this architecture utilizes Auto Loader with SQS File Notifications. By shifting to an event-driven discovery model, file detection occurs in $O(1)$ constant time. The moment a file lands in S3, a notification is pushed through SNS to SQS, allowing Databricks to pinpoint exactly which new files need processing without ever performing a full bucket scan.
+
+This native AWS event-driven pattern scales to millions of objects without the performance degradation or cost spikes associated with polling. Messages accumulate safely in the queue while the cluster is scaling or mid-run, ensuring no data is lost during compute transitions. A dead-letter queue (DLQ) is integrated to capture and isolate "poison pill" messages that fail repeated processing, preventing malformed records from blocking the pipeline. Furthermore, a visibility timeout of 300 seconds provides the DLT job sufficient time to complete and commit the batch before any re-delivery occurs, maintaining strict processing integrity.
 
 ---
 
-## 🔄 Continuous CDC Replication
+## 🔄 Full Load + Continuous CDC Replication (Simulated for the Project)
 
 The on-premise ERP is simulated by a Python Boto3 agent performing **Change Data Capture** against the Olist relational dataset. Each change event carries two critical fields that mirror real CDC tooling (Debezium, AWS DMS, Oracle GoldenGate):
 
@@ -150,15 +152,9 @@ The Bronze layer uses **Databricks Auto Loader** in file notification mode, cons
 
 `analytics/transformations/silver.py`
 
-Silver reads from Bronze and applies the pipeline's **data quality layer** via DLT Expectations. Every table has explicit, declarative rules governing what constitutes a valid record. Violations are handled at defined severity levels:
+Silver reads from Bronze and serves as the pipeline's enforcement and reconciliation layer. Instead of relying on native declarative constraints, this engine utilizes a suite of custom Python validation functions to audit data across three distinct dimensions: Technical Data Quality (schema and null-integrity), Business Logic (domain-specific rules and reference integrity), and Analytic Readiness (metric-validity and distribution checks). This programmatic approach allows for complex, multi-column logic and cross-table validation that exceeds standard expectation syntax.
 
-| Expectation Mode | Behaviour | Used For |
-|:---|:---|:---|
-| `@dlt.expect` | Log violation, retain row | Soft warnings on optional fields |
-| `@dlt.expect_or_drop` | Drop violating row | Business key constraints |
-| `@dlt.expect_or_fail` | Halt pipeline | Critical integrity failures |
-
-Beyond quality enforcement, Silver applies the CDC **`OP` codes** against the `ar_h_commit` ordering. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers (`order_id`, `customer_id`, etc.). Deletes are applied as soft-deletes. The result is a **consistent, deduplicated Silver layer** that accurately reflects the current state of the source ERP — regardless of how many times SQS delivered the same event. Type casting, timestamp normalisation, and entity joins (orders → customers, orders → items → products) are also resolved at this layer.
+Beyond quality enforcement, Silver applies the **CDC OP codes** against the **AR_H_COMMIT_TIMESTAMP ordering** to maintain system state. Inserts and updates are merged into Silver tables using Delta's MERGE semantics, keyed on business identifiers such as order_id or customer_id. Deletes are handled as soft-deletes to preserve historical lineage. The result is a consistent, deduplicated Silver layer that accurately reflects the current state of the source ERP, regardless of duplicate SQS notifications or out-of-order event delivery. Comprehensive type casting, timestamp normalization, and critical entity joins—linking orders, customers, and products—are also finalized at this stage to prepare data for the Gold layer.
 
 ---
 
@@ -169,13 +165,13 @@ Beyond quality enforcement, Silver applies the CDC **`OP` codes** against the `a
 Gold is the analytics-serving layer. Tables are modelled as a **star schema** with clear separation of fact and dimension tables:
 
 - **Fact tables** — `fact_orders`, `fact_order_items`, `fact_payments` — transactional measures at event grain (revenue, quantities, delivery times)
-- **Dimension tables** — `dim_customers`, `dim_products`, `dim_sellers` — descriptive attributes for Power BI slicing and filtering
+- **Dimension tables** — `dim_customers`, `dim_products`, `dim_sellers`, `dim_date` — descriptive attributes for Power BI slicing and filtering
 
 Tables are **partitioned** on date columns (`order_month`, `order_year`) so Power BI queries filtering by time period scan only the relevant partitions rather than the full table. **Z-ORDER clustering** is applied on high-selectivity filter columns (`order_status`, `product_category`, `seller_state`), co-locating related values on the same Delta data files — enabling sub-second dashboard response times over large datasets. Pre-aggregated summary tables materialise the most expensive calculations once at pipeline time so the dashboard never recomputes them on the fly.
 
 ---
 
-## 🔒 Idempotency & Consistency Guarantees
+## 🔒 Framework Idempotency & Consistency Guarantees
 
 | Guarantee | Mechanism |
 |:---|:---|
@@ -187,7 +183,7 @@ Tables are **partitioned** on date columns (`order_month`, `order_year`) so Powe
 
 ---
 
-## 🕛 Orchestration — Databricks Workflows
+## 🕛 Orchestration — Databricks Lakeflow Jobs
 
 The pipeline runs on a **daily cron schedule at midnight** via a Databricks Workflow. The job chains two tasks with strict dependency:
 
@@ -199,7 +195,7 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 [Alert]   Email / webhook notification
 ```
 
-This separation is intentional: the CDC agent replicates continuously throughout the day, while the DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting. Retries up to 2× are configured on Task 1 before the workflow alerts and stops.
+This separation is intentional: the CDC agent replicates continuously throughout the day, while the DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting. Retries up to 2×, with a 10 minute delay, are configured on Task 1 before the workflow alerts and stops.
 
 ---
 
