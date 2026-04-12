@@ -32,14 +32,11 @@
 
 #### The Challenge: Breaking the Analytical Bottleneck
 
-> An enterprise e-commerce platform is currently constrained by an on-premise ERP system that serves as a single point of failure for both operations and intelligence. Running complex analytical queries against the production relational database creates resource contention, degrading OLTP (Online Transactional Processing) performance and risking operational downtime during peak business hours.
-
-
-> Furthermore, the lack of a scalable, cloud-native infrastructure prevents leadership from accessing real-time insights, as the current environment cannot handle the volume, variety, and velocity of modern retail data.
+The enterprise is constrained by an on-premise ERP monolith that forces transactional operations and analytical queries to compete for the same hardware resources. This resource contention degrades OLTP performance, risking system instability and downtime during peak business hours. Without a cloud-native architecture to decouple these workloads for analtics, leadership is trapped with high-latency, fragmented data that cannot scale with the volume and velocity of modern retail operations.
 
 #### The Solution: An Event-Driven Analytical Ecosystem
 
-> This project engineers a high-availability, Hybrid-Cloud Analytics Engine designed to decouple operational workloads from analytical processing. By implementing a continuous Change Data Capture (CDC) strategy, we replicate ERP data to AWS without impacting source system performance.
+> This project utilizes AWS DMS (simulated) to engineer a continuous, high-availability ETL pipeline that replicates on-premise ERP data directly into a Databricks-managed lakehouse. By offloading the Change Data Capture (CDC) process to DMS, the architecture ensures zero impact on production OLTP performance while maintaining a real-time stream of relational changes. The pipeline is fully orchestrated to transform raw data through a Medallion architecture, culminating in a Gold-standard star schema that triggers an automated Power BI REST API refresh to serve a live executive dashboard for leadership.
 
 ---
 
