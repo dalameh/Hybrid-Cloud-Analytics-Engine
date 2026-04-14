@@ -1,76 +1,80 @@
 # Hybrid-Cloud-Analytics-Engine
 
+<div align="center">
+
 ![Python](https://img.shields.io/badge/Python-CDC%20Agent%20Script-3776AB?style=flat-square&logo=python&logoColor=white)
-
-
 ![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
-
-
 ![Databricks](https://img.shields.io/badge/Databricks-DLT%20%C2%B7%20DeltaTable-E64A19?style=flat-square&logo=databricks&logoColor=white)
-
-
 ![PySpark](https://img.shields.io/badge/PySpark-Medallion%20Architecture-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
-
-
 ![PowerBI](https://img.shields.io/badge/Power%20BI-Executive%20Dashboard-F2C811?style=flat-square&logo=powerbi&logoColor=black)
 
-> Enterprise-grade, event-driven ERP analytics pipeline — on-premise relational data continuously replicated to AWS, transformed through a Medallion architecture on Databricks, and served to a live Power BI executive dashboard.
+**Enterprise-grade, event-driven ERP analytics pipeline — on-premise relational data continuously replicated to AWS, transformed through a Medallion architecture on Databricks, and served to a live Power BI executive dashboard.**
+
+</div>
 
 ---
 
 ## Table of Contents
 
-- [Business Problem](#-business-problem)
+- [Business Context](#-business-context)
+  - [The Business](#the-business)
+  - [The Challenge](#the-challenge-breaking-the-analytical-bottleneck)
+  - [The Solution](#the-solution-an-event-driven-analytical-ecosystem)
 - [Architecture](#-architecture)
-- [Infrastructure — AWS CDK](#-infrastructure--aws-cdk)
-- [Continuous CDC Replication](#-continuous-cdc-replication)
-- [ETL Pipeline — Databricks DLT](#-etl-pipeline--databricks-dlt)
+- [Infrastructure — AWS CDK](#️-infrastructure--aws-cdk-iac)
+  - [S3 Landing Zone](#s3-landing-zone)
+  - [S3 Data Lakehouse](#s3-data-lakehouse)
+  - [SNS — Event Fan-out](#sns--event-fan-out)
+  - [SQS — Durable Work Buffer](#sqs--durable-work-buffer)
+- [Continuous CDC Replication](#-continuous-cdc-replication-simulated)
+- [ETL Pipeline — Databricks DLT](#️-etl-pipeline--databricks-dlt)
   - [Bronze — Raw Ingestion & Checkpointing](#bronze--raw-ingestion--checkpointing)
   - [Silver — Data Quality & CDC Upserts](#silver--data-quality--cdc-upserts)
   - [Gold — Star Schema & Query Optimisation](#gold--star-schema--query-optimisation)
 - [Idempotency & Consistency Guarantees](#-idempotency--consistency-guarantees)
-- [Orchestration — Databricks Workflows](#-orchestration--databricks-workflows)
+- [Orchestration — Databricks Lakeflow Jobs](#-orchestration--databricks-lakeflow-jobs)
 - [Power BI Dashboard](#-power-bi-dashboard)
 - [Repository Structure](#-repository-structure)
-- [Tech Stack](#-tech-stack)
+- [Tech Stack](#️-tech-stack)
+- [Planned Improvements](#-planned-improvements)
 
 ---
 
-## 💼 The Business:
+## 💼 Business Context
 
-Olist is a Brazilian e-commerce ecosystem that acts as a strategic integrator, connecting thousands of small businesses and local merchants to the country’s largest online marketplaces. By providing a unified logistics and listing platform, it allows sellers to scale their reach while Olist manages the heavy lifting of product distribution and customer service.
+### The Business
 
-## 🎯 Business Problem
+Olist is a Brazilian e-commerce ecosystem that acts as a strategic integrator, connecting thousands of small businesses and local merchants to the country's largest online marketplaces. By providing a unified logistics and listing platform, it allows sellers to scale their reach while Olist manages the heavy lifting of product distribution and customer service.
 
-#### The Challenge: Breaking the Analytical Bottleneck
+### The Challenge: Breaking the Analytical Bottleneck
 
 The enterprise is currently tethered to an on-premise ERP monolith that was designed for transactional stability, not modern analytical scale. This legacy architecture forces business intelligence queries to compete with real-time operations for the same hardware resources, creating a performance bottleneck that degrades OLTP performance, risking system instability and downtime during peak high-volume retail periods.
 
 To unlock the next phase of growth, leadership is pivoting to a Hybrid-Cloud integration strategy to migrate and synchronize transactional data into a unified cloud data warehouse. By decoupling analytical workloads from the on-premise core, the enterprise aims to:
 
-> Eliminate Resource Contention (Offload Compute): Move heavy compute-intensive queries to the cloud to ensure the local ERP remains fast and responsive for frontline operations.
+| Goal | Description |
+|:---|:---|
+| **Eliminate Resource Contention** | Offload compute-intensive queries to the cloud to ensure the local ERP remains fast and responsive for frontline operations |
+| **Unified Source of Truth** | Centralize fragmented data from multiple local instances into a single, scalable Medallion Architecture governed by Unity Catalog |
+| **Executive Visibility** | Replace delayed reports with real-time Executive Dashboards to track cross-regional KPIs instantly |
+| **Enable Advanced Analytics** | Provide the infrastructure necessary for high-velocity predictive modeling and real-time reporting the legacy hardware cannot support |
 
-> Establish a Unified Source of Truth: Centralize fragmented data from multiple local instances into a single, scalable Medallion Architecture on the lakehouse, governed by Unity Catalog
+### The Solution: An Event-Driven Analytical Ecosystem
 
-> Executive Visibility: Replace delayed reports with real-time Executive Dashboards to track cross-regional KPIs instantly.
+This architecture bridges an on-premise ERP monolith to a Databricks Lakehouse using a continuous Change Data Capture (CDC) pipeline. By leveraging AWS DMS (simulated), transactional state changes are replicated into the cloud in real-time, completely offloading analytical overhead from the production OLTP engine.
 
-> Enable Advanced Analytics: Provide the infrastructure necessary for high-velocity predictive modeling and real-time reporting that the legacy hardware simply cannot support.
+The data flows through a governed Medallion architecture within Unity Catalog, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled Databricks Workflows job runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the Power BI REST API upon completion, ensuring leadership dashboards reflect the latest business state without manual intervention.
 
-#### The Solution: An Event-Driven Analytical Ecosystem
-
-> This architecture bridges an on-premise ERP monolith to a Databricks Lakehouse using a continuous Change Data Capture (CDC) pipeline. By leveraging AWS DMS (simulated), transactional state changes are replicated into the cloud in real-time, completely offloading analytical overhead from the production OLTP engine.
-
-> The data flows through a governed Medallion architecture within Unity Catalog, where raw relational changes are ultimatley refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled Databricks Workflows job runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the Power BI REST API upon completion, ensuring leadership dashboards reflect the latest business state without manual intervention.
 ---
 
 ## 🏗 Architecture
 
 ```
 ┌─────────────────────────┐
-│   On-Prem ERP (Olist)   │  Python CDC agent · `AR_H_COMMIT_TIMESTAMP` + OP-coded events
+│   On-Prem ERP (Olist)   │  Python CDC agent · AR_H_COMMIT_TIMESTAMP + OP-coded events
 │   Relational Database   │  Continuous incremental replication
 └───────────┬─────────────┘
-            │ 
+            │
             │  PUT Object (Parquet · Hive-partitioned Y/M/D)
             ▼
 ┌─────────────────────────┐
@@ -104,10 +108,10 @@ To unlock the next phase of growth, leadership is pivoting to a Hybrid-Cloud int
 │                                                          │
 │              DLT State · Auto Loader Checkpoint          │
 │              Idempotent · Crash-safe · Schema-evolving   │
-└──────────────────────────┬───────────────────────────────┘
-                           │
-                           │  Databricks Workflow · daily @ midnight
-                           ▼
+└──────────────────────┬───────────────────────────────────┘
+                       │
+                       │  Databricks Workflow · daily @ midnight
+                       ▼
 ┌─────────────────────────┐
 │     Power BI            │  REST API semantic model refresh
 │     Executive Dashboard │  Auto-updated after every successful run
@@ -122,63 +126,53 @@ All AWS infrastructure is provisioned as code using the **AWS CDK**, ensuring th
 
 ### S3 Landing Zone
 
-> The S3 bucket `olist-ecommerce-landing-zone-useast1` is the raw system of record, providing the landing zone for the full load and all on-going replications. 
+The S3 bucket `olist-ecommerce-landing-zone-useast1` is the raw system of record, providing the landing zone for the full load and all on-going replications.
 
-> Incoming files are partitioned by dataset and date using Hive-style keys (`dataset/year=/month=/day=`), enabling efficient partition pruning downstream without full bucket scans.
-
-> The **lifecycle policy** automatically transitions objects to S3 Infrequent Access after 30 days, Glacier Flexible after 90,  and expires them after 365 days — keeping storage costs bounded as data accumulates indefinitely. 
-
-> Versioning is enabled to protect against accidental overwrites during replication and Amazon S3 managed encryption (SSE-S3) is automatically applied to gaurantee server-side encryption for all objects in S3, using AES-256 encryption to protect data at rest
+- **Hive-style partitioning** (`dataset/year=/month=/day=`) enables efficient partition pruning downstream without full bucket scans
+- **Lifecycle policy** automatically transitions objects to S3 Infrequent Access after 30 days, Glacier Flexible after 90, and expires them after 365 days — keeping storage costs bounded as data accumulates
+- **Versioning** is enabled to protect against accidental overwrites during replication
+- **SSE-S3 encryption** (AES-256) is automatically applied to guarantee server-side encryption for all objects at rest
 
 ### S3 Data Lakehouse
 
-> The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalog Managed Location**, providing the high-performance storage backbone for the **Bronze, Silver, and Gold** Delta tables. 
+The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalog Managed Location**, providing the high-performance storage backbone for the Bronze, Silver, and Gold Delta tables.
 
-> Unlike the raw Landing Zone, data is stored in optimized **Delta format** in a dedicated **_unitystorage/** directory, enabling ACID transactions, time travel, and schema enforcement across the entire pipeline.
-
-> By decoupling compute from storage, this layer ensures that the **Hybrid-Cloud ERP** data remains persistent and accessible to both Databricks SQL and downstream ML workloads without data duplication.
-
-> Centralized governance is enforced through **Managed Storage**, ensuring all physical data access is audited and restricted to the Unity Catalog service principal.
-
-> Amazon S3 managed encryption (SSE-S3) is automatically applied to gaurantee server-side encryption for all objects in S3, using AES-256 encryption to protect data at rest.
+- Data is stored in optimized **Delta format** in a dedicated `_unitystorage/` directory, enabling ACID transactions, time travel, and schema enforcement across the entire pipeline
+- **Decoupled compute from storage** ensures ERP data remains persistent and accessible to both Databricks SQL and downstream ML workloads without data duplication
+- **Managed Storage** enforces centralized governance, auditing all physical data access and restricting it to the Unity Catalog service principal
+- **SSE-S3 encryption** (AES-256) applied identically to the landing zone
 
 ### SNS — Event Fan-out
 
-> Every `s3:ObjectCreated` event fires a notification to the `olist-landing-topic` SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. 
-
-> Gives opportunity for new consumers (alerting, archival, compliance auditing) to subscribe to the topic without modifying a single line of ingestion code. 
-
+Every `s3:ObjectCreated` event fires a notification to the `olist-landing-topic` SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. This also allows new consumers (alerting, archival, compliance auditing) to subscribe to the topic without modifying a single line of ingestion code.
 
 ### SQS — Durable Work Buffer
 
-> The `olist-landing-queue` acts as the event-driven backbone of the ingestion layer, subscribing to the olist-landing-topic via SNS. 
+The `olist-landing-queue` acts as the event-driven backbone of the ingestion layer, subscribing to `olist-landing-topic` via SNS.
 
-> By utilizing Auto Loader with SQS File Notifications, the architecture bypasses the latency of traditional S3 directory listings—an $O(N)$ operation that becomes prohibitively expensive as object counts scale.Instead, file discovery occurs in $O(1)$ constant time. The moment a file lands in S3, a notification is pushed through the SNS-SQS chain, allowing Databricks to pinpoint and ingest new data without performing a full bucket scan.
-
-> This event-driven pattern ensures that even as the ERP history scales to millions of objects, discovery remains instantaneous and cost-effective.To ensure pipeline resilience, a Dead-Letter Queue (DLQ) is integrated (with a maxReceiveCount of 3) to isolate "poison pill" files that fail processing, preventing malformed data from stalling the entire batch. 
-
-> Furthermore, a 300-second visibility timeout ensures the Databricks job has sufficient overhead to commit the batch before any message re-delivery occurs, maintaining strict processing integrity during compute transitions.
+- **O(1) file discovery**: By utilizing Auto Loader with SQS File Notifications, the architecture bypasses the latency of traditional S3 directory listings — an $O(N)$ operation that becomes prohibitively expensive as object counts scale. The moment a file lands in S3, a notification is pushed through the SNS→SQS chain, allowing Databricks to pinpoint and ingest new data without performing a full bucket scan
+- **Dead-Letter Queue (DLQ)** with `maxReceiveCount: 3` isolates "poison pill" files that fail processing, preventing malformed data from stalling the entire batch
+- **300-second visibility timeout** ensures the Databricks job has sufficient overhead to commit the batch before any message re-delivery occurs, maintaining strict processing integrity during compute transitions
 
 ---
 
-## 🔄 Full Load + Continuous CDC Replication (Simulated for the Project)
+## 🔄 Continuous CDC Replication (Simulated)
 
-> The on-premise ERP Full Load + **Change Data Capture** is simulated by a **Python Boto3 agent** that replicates the behavior the behavior of DMS's built in replication engine. 
+The on-premise ERP Full Load + Change Data Capture is simulated by a **Python Boto3 agent** that replicates the behavior of DMS's built-in replication engine.
 
-  > State-Aware Replication: The agent promotes source transaction metadata into physical columns (AR_H_COMMIT_TIMESTAMP and OP), ensuring the downstream Medallion pipeline can reconstruct the database state with perfect chronological fidelity.
-  | Field | Purpose |
-  |:---|:---|
-  | `AR_H_COMMIT_TIMESTAMP` | A physical metadata column captured from the source DB's transaction log. It provides a monotonically increasing sequence that allows the pipeline to resolve the "Last Write Wins" logic when multiple updates occur for the same record within a single batch. |
-  | `OP` | The operation flags `I` (insert) · `U` (update) · `D` (delete) emitted by the DMS CDC engine — tells the Silver layer exactly which merge, upsert, or delete logic to apply |
+**Promoted metadata columns:**
 
-  > Engine Logic Simulation: To mirror a production DMS instance, the agent utilizes internal buffering governed by:
+| Field | Purpose |
+|:---|:---|
+| `AR_H_COMMIT_TIMESTAMP` | A physical metadata column captured from the source DB's transaction log. Provides a monotonically increasing sequence that allows the pipeline to resolve "Last Write Wins" logic when multiple updates occur for the same record within a single batch |
+| `OP` | Operation flags `I` (insert) · `U` (update) · `D` (delete) emitted by the DMS CDC engine — tells the Silver layer exactly which merge, upsert, or delete logic to apply |
 
-  > BatchApplyMemoryLimit: Logic that flushes data to S3 once a specific record volume is reached to optimize storage IOPS.
+**Engine logic simulation mirrors a production DMS instance via:**
 
-  > BatchApplyTimeout: A temporal trigger that ensures a "heartbeat" flush occurs periodically
+- `BatchApplyMemoryLimit` — flushes data to S3 once a specific record volume is reached to optimize storage IOPS
+- `BatchApplyTimeout` — a temporal trigger that ensures a "heartbeat" flush occurs periodically
 
-
-> The agent runs **continuously** (simulated by boto3 script), uploading incremental Parquet batches to `olist-ecommerce-landing-zone-useast1` S3 bucket throughout the day. The DLT pipeline then processes these accumulated CDC events in a single nightly run — separating the concern of data availability (continuous replication) from analytical consistency (daily clean Gold layer for reporting).
+The agent runs **continuously**, uploading incremental Parquet batches to S3 throughout the day. The DLT pipeline then processes these accumulated CDC events in a single nightly run — separating the concern of data availability (continuous replication) from analytical consistency (daily clean Gold layer for reporting).
 
 ---
 
@@ -190,13 +184,13 @@ The pipeline is implemented as a **Databricks Delta Live Tables** pipeline spann
 
 ### Bronze — Raw Ingestion & Checkpointing
 
-`analytics/transformations/bronze.py`
+> `analytics/transformations/bronze.py`
 
-> The Bronze layer uses **Databricks Auto Loader** in file notification mode, consuming SQS events to discover new S3 objects. Data lands in Bronze as-is — raw, unmodified, with no type casting or business logic applied.
+The Bronze layer uses **Databricks Auto Loader** in file notification mode, consuming SQS events to discover new S3 objects. Data lands in Bronze as-is — raw, unmodified, with no type casting or business logic applied.
 
-> The only additions are pipeline metadata columns (`_ingest_date`, `_ingested_at`,`_source_file`, ) for **end-to-end lineage tracking**. Each Olist entity lands in its own Bronze **Delta table**: orders, order items, customers, products, payments, reviews, sellers, and geolocation.
+The only additions are pipeline metadata columns (`_ingest_date`, `_ingested_at`, `_source_file`) for **end-to-end lineage tracking**. Each Olist entity lands in its own Bronze Delta table: `orders`, `order_items`, `customers`, `products`, `payments`, `reviews`, `sellers`, and `geolocation`.
 
-**Auto Loader checkpointing** is the foundation of the pipeline's reliability. A checkpoint directory persists the offset of every file Auto Loader has processed. This means:
+**Auto Loader checkpointing** is the foundation of the pipeline's reliability. A checkpoint directory persists the offset of every file Auto Loader has processed:
 
 - If the cluster is terminated mid-run, the next execution **resumes from the last committed offset** — no files are skipped, none are re-processed
 - SQS at-least-once delivery is **handled transparently** — duplicate notifications for the same S3 file are silently skipped by the checkpoint
@@ -206,35 +200,54 @@ The pipeline is implemented as a **Databricks Delta Live Tables** pipeline spann
 
 ### Silver — Data Quality & CDC Upserts
 
-`analytics/transformations/silver.py`
+> `analytics/transformations/silver.py`
 
-> Silver reads from Bronze and serves as the pipeline's enforcement and reconciliation layer. Instead of relying on native declarative constraints, this engine utilizes a suite of custom Python validation functions to audit data across three distinct dimensions: Technical Data Quality (schema and null-integrity), Business Logic (domain-specific rules and reference integrity), and Analytic Readiness (metric-validity and distribution checks). This programmatic approach allows for complex, multi-column logic and cross-table validation that exceeds standard expectation syntax.
+Silver reads from Bronze and serves as the pipeline's enforcement and reconciliation layer. Instead of relying on native declarative constraints, this engine utilizes a suite of custom Python validation functions to audit data across three distinct dimensions:
 
-> Data that fails pre-defined Data Quality (DQ) checks is diverted into dedicated **Quarantine Tables** within Unity Catalog.
+| Dimension | Description |
+|:---|:---|
+| **Technical Data Quality** | Schema and null-integrity validation |
+| **Business Logic** | Domain-specific rules and reference integrity checks |
+| **Analytic Readiness** | Metric-validity and distribution checks |
 
-  > Auditability: Every quarantined record is persisted with a rejection_reason metadata column (e.g., Negative Price, Null Order_ID), allowing for rapid root-cause analysis without stalling the main pipeline.
+This programmatic approach allows for complex, multi-column logic and cross-table validation that exceeds standard expectation syntax.
 
-  > Non-Blocking Logic: By shunting "poison pill" records into a side-table rather than failing the entire job, the pipeline maintains high availability for the 99% of data that is healthy.
+**Quarantine Tables:** Data that fails pre-defined DQ checks is diverted into dedicated Quarantine Tables within Unity Catalog:
 
-  > Continuous Improvement: These tables serve as a feedback loop for the on-premise ERP team to identify upstream data entry errors or legacy system bugs.
+- **Auditability** — every quarantined record is persisted with a `rejection_reason` metadata column (e.g., `Negative Price`, `Null Order_ID`), allowing for rapid root-cause analysis without stalling the main pipeline
+- **Non-Blocking Logic** — by shunting "poison pill" records into a side-table rather than failing the entire job, the pipeline maintains high availability for the 99% of data that is healthy
+- **Continuous Improvement** — these tables serve as a feedback loop for the on-premise ERP team to identify upstream data entry errors or legacy system bugs
 
-> Beyond quality enforcement, Silver applies the **CDC OP Flags** against the **AR_H_COMMIT_TIMESTAMP ordering** to maintain system state. Inserts and updates are merged into Silver tables using Delta's MERGE semantics, keyed on business identifiers such as order_id or customer_id. Deletes are hard-deleted to ensure silver and gold layers are sources of truth. The result is a consistent, deduplicated Silver layer that accurately reflects the current state of the source ERP, regardless of duplicate SQS notifications or out-of-order event delivery. Comprehensive type casting, timestamp normalization, and critical entity joins—linking orders, customers, and products—are also finalized at this stage to prepare data for the Gold layer. Thee changes ultimatley propogate downstream to the gold layer. 
+**CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, regardless of duplicate SQS notifications or out-of-order event delivery. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
 
 ---
 
 ### Gold — Star Schema & Query Optimisation
 
-`analytics/transformations/gold.py`
+> `analytics/transformations/gold.py`
 
-Gold is the analytics-serving layer. Tables are modelled as a **star schema** with clear separation of fact and dimension tables:
+Gold is the analytics-serving layer, modelled as a **star schema** with clear separation of fact and dimension tables:
 
-- **Fact tables** —  `fact_order_items`, `fact_payments`, `fact_reviews` — transactional measures at event grain (revenue, quantities, delivery times)
-- **Dimension tables** — `dim_orders`, `dim_customers`, `dim_products`, `dim_sellers`, `dim_date` — descriptive attributes for Power BI slicing and filtering
+**Fact Tables** — transactional measures at event grain:
 
-> Tables are **partitioned** strategically on columns that align with high frequency access patterns —such as `customer_state` —ensuring that queries, such as Power BI queries, filtering by geography scan only the relevant data folders. To further optimize performance, the architecture utilizes **Liquid Clustering** on high-selectivity columns. Unlike traditional Z-Ordering, Liquid Clustering dynamically adjusts data layout over time, co-locating related values to enable sub-second response times as the dataset evolves.
+| Table | Measures |
+|:---|:---|
+| `fact_order_items` | Revenue, quantities, delivery times |
+| `fact_payments` | Payment values, installments |
+| `fact_reviews` | Review scores, response times |
+
+**Dimension Tables** — descriptive attributes for Power BI slicing:
+
+`dim_orders` · `dim_customers` · `dim_products` · `dim_sellers` · `dim_date`
+
+**Query optimisation strategy:**
+
+- **Partition pruning** on high-frequency access columns such as `customer_state` — Power BI queries filtering by geography scan only the relevant data folders
+- **Liquid Clustering** on high-selectivity columns — unlike traditional Z-Ordering, Liquid Clustering dynamically adjusts data layout over time, co-locating related values for sub-second response times as the dataset evolves
+
 ---
 
-## 🔒 Framework Idempotency & Consistency Guarantees
+## 🔒 Idempotency & Consistency Guarantees
 
 | Guarantee | Mechanism |
 |:---|:---|
@@ -258,16 +271,15 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 [Alert]   Email / webhook notification
 ```
 
-This separation is intentional: the CDC agent replicates continuously throughout the day, while the DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting. Retries up to 2×, with a 10 minute delay, are configured on Task 1 before the workflow alerts and stops.
+This separation is intentional: the CDC agent replicates continuously throughout the day, while the DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops.
 
 ---
 
 ## 📊 Power BI Dashboard
 
-After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics:
+After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics.
 
-
-PUT THE DASHBOARD HERE
+> _Dashboard screenshot placeholder_
 
 ---
 
@@ -279,11 +291,11 @@ Hybrid-Cloud-Analytics-Engine/
 │   └── transformations/
 │       ├── 01_bronze.py             # Auto Loader · SQS notification · raw Delta tables
 │       ├── 02_silver.py             # DLT Expectations · schema enforcement · CDC upserts
-│       └── 03_gold.py               # Star schema · Z-ORDER · partition optimisation
+│       └── 03_gold.py               # Star schema · Liquid Clustering · partition optimisation
 ├── infrastructure/
 │   └── aws_configs/                 # IAM roles · SNS/SQS routing · CDK stack config
 ├── ingestion/
-│   └── simulated_onprem_sync.py     # Python CDC agent · AR_H_COMMIT_TIMESTAMP· OP Flags
+│   └── simulated_onprem_sync.py     # Python CDC agent · AR_H_COMMIT_TIMESTAMP · OP flags
 ├── orchestration/
 │   └── pbi_refresh_hook.py          # Power BI REST API refresh trigger
 └── README.md
@@ -291,19 +303,34 @@ Hybrid-Cloud-Analytics-Engine/
 
 ---
 
-## 🛠 Tech Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology | Purpose |
 |:---|:---|:---|
-| Ingestion | Python · Boto3 | CDC agent simulating continuous on-prem ERP sync |
-| Infrastructure | AWS CDK | Reproducible IaC for S3, SNS, SQS, IAM |
-| Storage | AWS S3 | Hive-partitioned raw landing zone with lifecycle management |
-| Events | AWS SNS | Fan-out decoupling between ingestion and compute |
-| Queue | AWS SQS + DLQ | Durable work buffer with fault-tolerant dead-lettering |
-| ETL | Databricks DLT · PySpark | Medallion architecture · Auto Loader · checkpointing |
-| Orchestration | Databricks Workflows | Scheduled daily execution · task chaining · alerting |
-| BI | Power BI | Executive dashboard · automated semantic model refresh |
+| **Ingestion** | Python · Boto3 | CDC agent simulating continuous on-prem ERP sync |
+| **Infrastructure** | AWS CDK | Reproducible IaC for S3, SNS, SQS, IAM |
+| **Storage** | AWS S3 | Hive-partitioned raw landing zone with lifecycle management |
+| **Events** | AWS SNS | Fan-out decoupling between ingestion and compute |
+| **Queue** | AWS SQS + DLQ | Durable work buffer with fault-tolerant dead-lettering |
+| **ETL** | Databricks DLT · PySpark | Medallion architecture · Auto Loader · checkpointing |
+| **Orchestration** | Databricks Workflows | Scheduled daily execution · task chaining · alerting |
+| **BI** | Power BI | Executive dashboard · automated semantic model refresh |
 
 ---
 
+## 🔮 Planned Improvements
+
+| Improvement | Description |
+|:---|:---|
+| **Late Arrival Reconciliation** | Handle late-arriving dimension records by writing placeholder rows for foreign keys that don't yet exist in the target dimension table (e.g., an `order_item` references a `product_id` that hasn't replicated yet). The placeholder preserves referential integrity in the star schema, marks the record as `unresolved`, and a reconciliation job back-fills the full attributes once the parent dimension record eventually lands. This prevents silent data loss and keeps fact table grain intact without blocking the pipeline. |
+| **SQS Subscription Filter Policy** | Scope SQS delivery to Olist dataset prefixes only, preventing internal S3 operations from triggering the pipeline unnecessarily |
+| **SQS PrivateLink** | Route SQS traffic over a VPC private endpoint to eliminate public internet traversal |
+| **DLQ → Quarantine Bridge** | Automatically promote DLQ messages into the Silver quarantine tables for unified auditability and root-cause analysis alongside DQ failures |
+
+---
+
+<div align="center">
+
 *Designed for production reliability — idempotent incremental loads, crash-safe Auto Loader checkpointing, event-driven decoupling, and zero-touch nightly orchestration.*
+
+</div>
