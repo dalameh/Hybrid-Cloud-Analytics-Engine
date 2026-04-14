@@ -265,9 +265,6 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 
 ```
 [Task 1]  Run DLT Pipeline (Bronze → Silver → Gold)
-
-<img width="1337" height="826" alt="image" src="https://github.com/user-attachments/assets/e4467af0-76c7-461c-9c1b-f258596a39d9" />
-
               ↓  on success only
 [Task 2]  Trigger Power BI semantic model refresh
               ↓  on failure
@@ -275,6 +272,8 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 ```
 
 This separation is intentional: the CDC agent replicates continuously throughout the day, while the DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops.
+
+<img width="1337" height="826" alt="image" src="https://github.com/user-attachments/assets/e4467af0-76c7-461c-9c1b-f258596a39d9" />
 
 ---
 
