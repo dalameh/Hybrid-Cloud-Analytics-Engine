@@ -152,6 +152,8 @@ The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalo
 
 Every `s3:ObjectCreated` event fires a notification to the `olist-landing-topic` SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. This also allows new consumers (alerting, archival, compliance auditing) to subscribe to the topic without modifying a single line of ingestion code.
 
+<img width="1609" height="517" alt="image" src="https://github.com/user-attachments/assets/8d3b1a1f-25eb-4a94-8a8e-c3ec7465930f" />
+
 ### SQS — Durable Work Buffer
 
 The `olist-landing-queue` acts as the event-driven backbone of the ingestion layer, subscribing to `olist-landing-topic` via SNS.
@@ -160,9 +162,15 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 - **Dead-Letter Queue (DLQ)** with `maxReceiveCount: 3` isolates "poison pill" files that fail processing, preventing malformed data from stalling the entire batch
 - **300-second visibility timeout** ensures the Databricks job has sufficient overhead to commit the batch before any message re-delivery occurs, maintaining strict processing integrity during compute transitions
 
+<img width="1650" height="360" alt="image" src="https://github.com/user-attachments/assets/9d11bb26-8d3d-46be-8127-601a79bfcf5a" />
+<img width="1804" height="703" alt="image" src="https://github.com/user-attachments/assets/cef2464d-e1ab-4ebb-a994-ce31bb7cf0d7" />
+
+
 ---
 
 ## 🔄 Continuous CDC Replication (Simulated) — AWS DMS
+> ingestion/dms_synthetic_batching.py
+> ingestion/dms_synthetic_run.py
 
 The on-premise ERP Full Load + Change Data Capture is simulated by a **Python Boto3 agent** that replicates the behavior of DMS's built-in replication engine.
 
@@ -183,6 +191,7 @@ The agent runs **continuously**, uploading incremental Parquet batches to S3 thr
 ---
 
 ## ⚙️ Unity Catalog Governance
+> pipeline/schema_builder.py
 
 I implemented **Unity Catalog** to provide a centralized governance layer for the **Unified Cloud Data Lakehouse**, moving beyond a simple "bucket of files" to a managed enterprise asset.
 
@@ -193,22 +202,8 @@ I established **External Locations** to securely map S3 storage to Databricks co
 * **`olist_raw_landing_zone`**: Ingestion point for raw CDC changes.
 * **`olist_datalakehouse_root`**: Storage backbone for all processed data.
 
-```sql
-CREATE EXTERNAL LOCATION olist_datalakehouse_root
-URL 's3://olist-ecommerce-prod-useast1-lakehouse/'
-WITH (STORAGE CREDENTIAL `db_s3_credentials_databricks-s3-ingest-7b60f`);
-
-CREATE EXTERNAL LOCATION olist_raw_landing_zone
-URL 's3://olist-ecommerce-landing-zone-useast1/landing/'
-WITH (STORAGE CREDENTIAL `db_s3_credentials_databricks-s3-ingest-7b60f`);
-```
-
 ### Medallion Catalog Architecture
 I architected the **`olist_prod`** catalog with a **Managed Location**, allowing the system to automatically handle physical file layout and metadata. This catalog is structured into medallion schemas:
-
-* **`bronze`**: Raw CDC row-level changes.
-* **`silver`**: Deduplicated, high-integrity records.
-* **`gold`**: Star Schema (Facts and Dimensions) for BI.
 
 ```sql
 CREATE CATALOG IF NOT EXISTS olist_prod 
@@ -220,6 +215,9 @@ CREATE SCHEMA IF NOT EXISTS olist_prod.gold;
 ```
 
 **Impact:** This setup decouples storage from compute while providing **Unified Security** and **Data Lineage** across the entire hybrid-cloud pipeline.
+
+<img width="1662" height="425" alt="image" src="https://github.com/user-attachments/assets/1718a66a-2d77-4696-97f3-8cff557d954a" />
+<img width="1153" height="669" alt="image" src="https://github.com/user-attachments/assets/699e1f34-563f-467e-96bb-551ab4a685c3" />
 
 ---
 
