@@ -181,7 +181,8 @@ The agent runs **continuously**, uploading incremental Parquet batches to S3 thr
 I implemented **Unity Catalog** to provide a centralized governance layer for the **Unified Cloud Data Lakehouse**, moving beyond a simple "bucket of files" to a managed enterprise asset.
 
 ### Infrastructure Setup
-> `analytics/schema_builder.ipynb
+> `pipeline/schema_builder.ipynb
+
 I established **External Locations** to securely map S3 storage to Databricks compute. 
 * **`olist_raw_landing_zone`**: Ingestion point for raw CDC changes.
 * **`olist_datalakehouse_root`**: Storage backbone for all processed data.
