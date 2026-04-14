@@ -63,7 +63,7 @@ from pyspark.sql.types import (
 # The _change_type column drives apply_as_deletes in Gold CDC flows,
 # ensuring deletes in Silver propagate correctly to Gold.
 #
-# SDP PIPELINE SETTINGS (recommended)
+# SDP PIPELINE SETTINGS
 # ------------------------------------
 # Target Catalog : olist_prod
 # Target Schema  : bronze  (Gold tables override via fully qualified names)

@@ -24,7 +24,7 @@ from pyspark.sql.types import BooleanType, StringType, TimestampType
 #       3. dp.create_streaming_table("<table>")         — explicit target table
 #       4. dp.create_auto_cdc_flow(target="<table>", source="<table>_clean_cdc", ...)
 #
-# SDP PIPELINE SETTINGS (recommended)
+# SDP PIPELINE SETTINGS
 # ------------------------------------
 # Target Catalog : olist_prod
 # Target Schema  : bronze  (Silver tables override via fully qualified names)

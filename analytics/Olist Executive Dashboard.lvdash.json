@@ -38,18 +38,13 @@
             "displayName": "Customer State"
           },
           {
-            "name": "is_placeholder",
-            "expr": "source.is_placeholder",
-            "displayName": "Is Placeholder"
-          },
-          {
-            "name": "silver_processed_at",
-            "expr": "source.silver_processed_at",
+            "name": "_silver_processed_at",
+            "expr": "source._silver_processed_at",
             "displayName": "Silver Processed At"
           },
           {
-            "name": "gold_processed_at",
-            "expr": "source.gold_processed_at",
+            "name": "_gold_processed_at",
+            "expr": "source._gold_processed_at",
             "displayName": "Gold Processed At"
           },
           {
@@ -259,13 +254,13 @@
             "displayName": "Is Delivered"
           },
           {
-            "name": "silver_processed_at",
-            "expr": "source.silver_processed_at",
+            "name": "_silver_processed_at",
+            "expr": "source._silver_processed_at",
             "displayName": "Silver Processed At"
           },
           {
-            "name": "gold_processed_at",
-            "expr": "source.gold_processed_at",
+            "name": "_gold_processed_at",
+            "expr": "source._gold_processed_at",
             "displayName": "Gold Processed At"
           },
           {
@@ -352,18 +347,13 @@
             "displayName": "Product Width Cm"
           },
           {
-            "name": "is_placeholder",
-            "expr": "source.is_placeholder",
-            "displayName": "Is Placeholder"
-          },
-          {
-            "name": "silver_processed_at",
-            "expr": "source.silver_processed_at",
+            "name": "_silver_processed_at",
+            "expr": "source._silver_processed_at",
             "displayName": "Silver Processed At"
           },
           {
-            "name": "gold_processed_at",
-            "expr": "source.gold_processed_at",
+            "name": "_gold_processed_at",
+            "expr": "source._gold_processed_at",
             "displayName": "Gold Processed At"
           },
           {
@@ -420,18 +410,13 @@
             "displayName": "Seller State"
           },
           {
-            "name": "is_placeholder",
-            "expr": "source.is_placeholder",
-            "displayName": "Is Placeholder"
-          },
-          {
-            "name": "silver_processed_at",
-            "expr": "source.silver_processed_at",
+            "name": "_silver_processed_at",
+            "expr": "source._silver_processed_at",
             "displayName": "Silver Processed At"
           },
           {
-            "name": "gold_processed_at",
-            "expr": "source.gold_processed_at",
+            "name": "_gold_processed_at",
+            "expr": "source._gold_processed_at",
             "displayName": "Gold Processed At"
           },
           {
@@ -533,13 +518,13 @@
             "displayName": "Shipping Limit Date"
           },
           {
-            "name": "silver_processed_at",
-            "expr": "source.silver_processed_at",
+            "name": "_silver_processed_at",
+            "expr": "source._silver_processed_at",
             "displayName": "Silver Processed At"
           },
           {
-            "name": "gold_processed_at",
-            "expr": "source.gold_processed_at",
+            "name": "_gold_processed_at",
+            "expr": "source._gold_processed_at",
             "displayName": "Gold Processed At"
           },
           {
@@ -616,13 +601,13 @@
             "displayName": "Monthly Instalment Value"
           },
           {
-            "name": "silver_processed_at",
-            "expr": "source.silver_processed_at",
+            "name": "_silver_processed_at",
+            "expr": "source._silver_processed_at",
             "displayName": "Silver Processed At"
           },
           {
-            "name": "gold_processed_at",
-            "expr": "source.gold_processed_at",
+            "name": "_gold_processed_at",
+            "expr": "source._gold_processed_at",
             "displayName": "Gold Processed At"
           },
           {
@@ -704,13 +689,13 @@
             "displayName": "Has Comment Message"
           },
           {
-            "name": "silver_processed_at",
-            "expr": "source.silver_processed_at",
+            "name": "_silver_processed_at",
+            "expr": "source._silver_processed_at",
             "displayName": "Silver Processed At"
           },
           {
-            "name": "gold_processed_at",
-            "expr": "source.gold_processed_at",
+            "name": "_gold_processed_at",
+            "expr": "source._gold_processed_at",
             "displayName": "Gold Processed At"
           },
           {
@@ -820,7 +805,8 @@
         "FROM\n",
         "  olist_prod.gold.fact_reviews r\n",
         "    JOIN olist_prod.gold.dim_order o\n",
-        "      ON r.order_sk = o.order_sk"
+        "      ON r.order_sk = o.order_sk\n",
+        "WHERE delivery_days IS NOT NULL -- not delivered"
       ]
     },
     {
@@ -908,8 +894,6 @@
         "  olist_prod.gold.fact_order_items oi\n",
         "    JOIN olist_prod.gold.dim_customer c\n",
         "      ON oi.customer_sk = c.customer_sk\n",
-        "WHERE\n",
-        "  c.is_placeholder = false\n",
         "GROUP BY\n",
         "  CONCAT('BR-', c.customer_state)"
       ]
@@ -951,8 +935,6 @@
         "        ON f.customer_sk = c.customer_sk\n",
         "      JOIN olist_prod.gold.dim_date d\n",
         "        ON f.purchase_date_sk = d.date_sk\n",
-        "  WHERE\n",
-        "    c.is_placeholder = FALSE\n",
         "  GROUP BY\n",
         "    c.customer_unique_id\n",
         "),\n",
@@ -1265,7 +1247,7 @@
               "version": 2,
               "frame": {
                 "showTitle": true,
-                "title": "On-Time Delivery"
+                "title": "On-Time Deliveries"
               },
               "widgetType": "counter",
               "encodings": {
@@ -2193,7 +2175,7 @@
                   },
                   {
                     "fieldName": "SELLER_CITY",
-                    "columnWidth": 100
+                    "columnWidth": 150
                   },
                   {
                     "fieldName": "SELLER_STATE",
