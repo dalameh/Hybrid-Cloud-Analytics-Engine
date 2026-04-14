@@ -292,6 +292,8 @@ Gold is the analytics-serving layer, modelled as a **star schema** with clear se
 - **Partition pruning** on high-frequency access columns such as `customer_state` — Power BI queries filtering by geography scan only the relevant data folders
 - **Liquid Clustering** on high-selectivity columns — unlike traditional Z-Ordering, Liquid Clustering dynamically adjusts data layout over time, co-locating related values for sub-second response times as the dataset evolves
 
+<img width="1690" height="769" alt="image" src="https://github.com/user-attachments/assets/46bd26fc-13bf-4a45-ad8b-75a105ff6841" />
+
 ---
 
 ## 🔒 Idempotency & Consistency Guarantees
