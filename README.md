@@ -63,7 +63,7 @@ To unlock the next phase of growth, leadership is pivoting to a **Hybrid-Cloud i
 
 ### The Solution: An Event-Driven Analytical Ecosystem
 
-This architecture bridges an on-premise ERP monolith to a Databricks Lakehouse using a continuous Change Data Capture (CDC) pipeline. By leveraging AWS DMS (simulated), transactional state changes are replicated into the cloud in real-time, completely offloading analytical overhead from the production OLTP engine.
+This architecture bridges an on-premise ERP monolith to a Databricks Lakehouse using a continuous Change Data Capture (CDC) pipeline. By leveraging **AWS DMS (simulated)**, transactional state changes are replicated into the cloud in real-time, completely offloading analytical overhead from the production OLTP engine.
 
 The data flows through a governed **Medallion architecture within Unity Catalog**, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled **Databricks Lakeflow job** runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the **Power BI REST API** and Databricks Dashboard upon completion, ensuring up to date leadership dashboards that reflect the latest business state without manual intervention.
 
