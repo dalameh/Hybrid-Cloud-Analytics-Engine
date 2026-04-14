@@ -135,6 +135,8 @@ The S3 bucket `olist-ecommerce-landing-zone-useast1` is the raw system of record
 - **Versioning** is enabled to protect against accidental overwrites during replication
 - **SSE-S3 encryption** (AES-256) is automatically applied to guarantee server-side encryption for all objects at rest
 
+<img width="1869" height="767" alt="image" src="https://github.com/user-attachments/assets/d8604d10-db2b-44c5-bedc-49cf64726f27" />
+
 ### S3 Data Lakehouse
 
 The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalog Managed Location**, providing the high-performance storage backbone for the Bronze, Silver, and Gold Delta tables.
@@ -143,6 +145,8 @@ The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalo
 - **Decoupled compute from storage** ensures ERP data remains persistent and accessible to both Databricks SQL and downstream ML workloads without data duplication
 - **Managed Storage** enforces centralized governance, auditing all physical data access and restricting it to the Unity Catalog service principal
 - **SSE-S3 encryption** (AES-256) applied identically to the landing zone
+
+<img width="1878" height="587" alt="image" src="https://github.com/user-attachments/assets/c18ea940-c37e-4a4a-957b-ed47b57a1751" />
 
 ### SNS — Event Fan-out
 
