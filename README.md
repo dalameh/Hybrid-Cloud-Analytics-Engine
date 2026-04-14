@@ -331,27 +331,6 @@ After each successful pipeline run, the published Databricks Dashboard is refres
 
 After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics.
 
-
----
-
-## 📁 Repository Structure
-
-```
-Hybrid-Cloud-Analytics-Engine/
-├── analytics/
-│   └── transformations/
-│       ├── 01_bronze.py             # Auto Loader · SQS notification · raw Delta tables
-│       ├── 02_silver.py             # DLT Expectations · schema enforcement · CDC upserts
-│       └── 03_gold.py               # Star schema · Liquid Clustering · partition optimisation
-├── infrastructure/
-│   └── aws_configs/                 # IAM roles · SNS/SQS routing · CDK stack config
-├── ingestion/
-│   └── simulated_onprem_sync.py     # Python CDC agent · AR_H_COMMIT_TIMESTAMP · OP flags
-├── orchestration/
-│   └── pbi_refresh_hook.py          # Power BI REST API refresh trigger
-└── README.md
-```
-
 ---
 
 ## 🛠️ Tech Stack
