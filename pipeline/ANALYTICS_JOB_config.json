@@ -1,0 +1,32 @@
+{
+  "name": "ANALYTICS_JOB",
+  "max_concurrent_runs": 1,
+  "performance_target": "PERFORMANCE_OPTIMIZED",
+  "email_notifications": {
+    "on_start": [],
+    "on_success": [],
+    "on_failure": []
+  },
+  "tasks": [
+    {
+      "task_key": "ETL_Pipeline",
+      "pipeline_task": {
+        "pipeline_id": "08dc537d-d326-41f8-913c-e53cd2f7b1b6",
+        "full_refresh": false
+      },
+      "depends_on": []
+    },
+    {
+      "task_key": "Executive_Dashboard",
+      "dashboard_task": {
+        "dashboard_id": "01f135bd48901a31b1d9620f0274e30c",
+        "warehouse_id": "f9c9e695c54edf40"
+      },
+      "depends_on": [
+        {
+          "task_key": "ETL_Pipeline"
+        }
+      ]
+    }
+  ]
+}
