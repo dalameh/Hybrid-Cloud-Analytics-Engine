@@ -50,7 +50,7 @@ Olist is a Brazilian e-commerce ecosystem that acts as a strategic integrator, c
 
 The enterprise is currently tethered to an **on-premise ERP monolith** that was designed for transactional stability, not modern analytical scale. This legacy architecture forces business intelligence queries to compete with real-time operations for the same hardware resources, creating a performance bottleneck that degrades OLTP performance, risking system instability and downtime during peak high-volume retail periods.
 
-To unlock the next phase of growth, leadership is pivoting to a **Hybrid-Cloud integration strategy** to migrate and synchronize transactional data into a **unified cloud data warehouse**. By decoupling analytical workloads from the on-premise core, the enterprise aims to:
+To unlock the next phase of growth, leadership is pivoting to a **Hybrid-Cloud integration strategy** to migrate and synchronize transactional data into a **unified cloud data lakehouse**. By decoupling analytical workloads from the on-premise core, the enterprise aims to:
 
 | Goal | Description |
 |:---|:---|
@@ -63,7 +63,7 @@ To unlock the next phase of growth, leadership is pivoting to a **Hybrid-Cloud i
 
 This architecture bridges an on-premise ERP monolith to a Databricks Lakehouse using a continuous Change Data Capture (CDC) pipeline. By leveraging AWS DMS (simulated), transactional state changes are replicated into the cloud in real-time, completely offloading analytical overhead from the production OLTP engine.
 
-The data flows through a governed **Medallion architecture within Unity Catalog**, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled **Databricks Workflows job** runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the **Power BI REST API** and Databricks Dashboard upon completion, ensuring leadership dashboards reflect the latest business state without manual intervention.
+The data flows through a governed **Medallion architecture within Unity Catalog**, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled **Databricks Lakeflow job** runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the **Power BI REST API** and Databricks Dashboard upon completion, ensuring up to date leadership dashboards that reflect the latest business state without manual intervention.
 
 ---
 
@@ -173,6 +173,49 @@ The on-premise ERP Full Load + Change Data Capture is simulated by a **Python Bo
 - `BatchApplyTimeout` — a temporal trigger that ensures a "heartbeat" flush occurs periodically
 
 The agent runs **continuously**, uploading incremental Parquet batches to S3 throughout the day. The DLT pipeline then processes these accumulated CDC events in a single nightly run — separating the concern of data availability (continuous replication) from analytical consistency (daily clean Gold layer for reporting).
+
+---
+
+## ⚙️ Unity Catalog Governance
+
+I implemented **Unity Catalog** to provide a centralized governance layer for the **Unified Cloud Data Lakehouse**, moving beyond a simple "bucket of files" to a managed enterprise asset.
+
+### Infrastructure Setup
+I established **External Locations** to securely map S3 storage to Databricks compute. 
+* **`olist_raw_landing_zone`**: Ingestion point for raw CDC changes.
+* **`olist_datalakehouse_root`**: Storage backbone for all processed data.
+
+```sql
+CREATE EXTERNAL LOCATION olist_datalakehouse_root
+URL 's3://olist-ecommerce-prod-useast1-lakehouse/'
+WITH (STORAGE CREDENTIAL `db_s3_credentials_databricks-s3-ingest-7b60f`);
+
+CREATE EXTERNAL LOCATION olist_raw_landing_zone
+URL 's3://olist-ecommerce-landing-zone-useast1/landing/'
+WITH (STORAGE CREDENTIAL `db_s3_credentials_databricks-s3-ingest-7b60f`);
+```
+
+### Medallion Catalog Architecture
+I architected the **`olist_prod`** catalog with a **Managed Location**, allowing the system to automatically handle physical file layout and metadata. This catalog is structured into medallion schemas:
+
+* **`bronze`**: Raw CDC row-level changes.
+* **`silver`**: Deduplicated, high-integrity records.
+* **`gold`**: Star Schema (Facts and Dimensions) for BI.
+
+```sql
+CREATE CATALOG IF NOT EXISTS olist_prod 
+MANAGED LOCATION 's3://olist-ecommerce-prod-useast1-lakehouse/';
+
+CREATE SCHEMA IF NOT EXISTS olist_prod.bronze;
+CREATE SCHEMA IF NOT EXISTS olist_prod.silver;
+CREATE SCHEMA IF NOT EXISTS olist_prod.gold;
+```
+
+**Impact:** This setup decouples storage from compute while providing **Unified Security** and **Data Lineage** across the entire hybrid-cloud pipeline.
+
+
+
+
 
 ---
 
