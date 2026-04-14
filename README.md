@@ -4,7 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-CDC%20Agent%20Script-3776AB?style=flat-square&logo=python&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
-![Databricks](https://img.shields.io/badge/Databricks-DeltaTables%20%C2%B7%20DLTPipelines%20%C2%B7%20LakeFlowJobs%20%C2%B7%20SDashboards-E64A19?style=flat-square&logo=databricks&logoColor=white)
+![Databricks](https://img.shields.io/badge/Databricks-DeltaTables%20%C2%B7%20DLT%20ETL%20Pipelines%20%C2%B7%20LakeFlow %20Jobs%20%C2%B7%20SDashboards-E64A19?style=flat-square&logo=databricks&logoColor=white)
 ![PySpark](https://img.shields.io/badge/PySpark-Medallion%20Architecture-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
 ![PowerBI](https://img.shields.io/badge/Power%20BI-Executive%20Dashboard-F2C811?style=flat-square&logo=powerbi&logoColor=black)
 
