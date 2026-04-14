@@ -1,9 +1,0 @@
-review_id,order_id,review_score,review_comment_title,review_comment_message,review_creation_date,review_answer_timestamp,AR_H_COMMIT_TIMESTAMP,OP
-3d19852c23fff17c55a4e8f29aa71b9e,0a131976e98291762104959158e2bdc6,1,Pessimo,Meu produto veio falsificado. ,2018-08-06,2018-08-07 15:40:29,2018-08-06,I
-e4b6f0b4bf793f7dbec3ac2133f5d14c,b6900b09afec4ea5ef8879a9b1e3881c,5,,,2018-08-06,2018-08-07 00:03:23,2018-08-06,I
-4626cc2c31f40a65ebb675b02abda468,32bc89adafbfd38be0cf6931769c6a6d,5,,,2018-08-06,2018-08-06 18:47:35,2018-08-06,I
-6b6951c7d142bf5444017f6808bcff9e,735c97c58832ee67c2f23aa70deb343c,5,Excelente ,,2018-08-06,2018-08-06 22:48:34,2018-08-06,I
-6f097da2df631912ca01ca919164d122,8cfa7a16b03f825c01508778166f12f1,5,,,2018-08-06,2018-08-07 10:28:21,2018-08-06,I
-f164c580c01a281264ae06538b23ee05,ad7957c1cde1dae009b1fc01e3e02758,5,Excelente,Produto recebido antes do prazo! Muito bom,2018-08-06,2018-08-06 19:09:03,2018-08-06,I
-808ae92529afbd426dc631830f9353a3,a7dc01ae91acf2567d1367a25ce303e5,5,,,2018-08-06,2018-08-09 23:38:21,2018-08-06,I
-ff2b8f250747f10d322e1dc906c80483,e1d91f5481b7e7a48c0ceefd3feb4ba5,3,Recomendo,"O produto muito bom, bonito , porém veio faltando cristais e fica faltando de um lado , mas espero que a loja enviei o que faltou. ",2018-08-06,2018-08-07 13:57:19,2018-08-06,I

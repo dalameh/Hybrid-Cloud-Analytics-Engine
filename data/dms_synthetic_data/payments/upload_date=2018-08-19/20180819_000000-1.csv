@@ -1,6 +1,0 @@
-order_id,payment_sequential,payment_type,payment_installments,payment_value,AR_H_COMMIT_TIMESTAMP,OP
-36c2be04c43db09655628dc1658e5c97,1,credit_card,3,123.07,2018-08-19 00:13:28,I
-0216b8a71f44f126ac083fa5d639fe47,1,credit_card,1,77.53,2018-08-19 00:17:45,I
-c17fcfaca02575c7e0ea991578a5e1a8,1,credit_card,4,93.86,2018-08-19 00:44:26,I
-2f98fa03385c6020590b479aa12b8073,1,debit_card,1,188.28,2018-08-19 02:22:53,I
-7ff091a081c936e22d36651bad1fc653,1,credit_card,4,48.17,2018-08-19 03:05:57,I

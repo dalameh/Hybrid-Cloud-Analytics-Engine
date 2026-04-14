@@ -1,2 +1,0 @@
-order_id,customer_id,order_status,order_purchase_timestamp,order_approved_at,order_delivered_carrier_date,order_delivered_customer_date,order_estimated_delivery_date,AR_H_COMMIT_TIMESTAMP,OP
-816d7f5c23756d3a5757a2b8364424c7,ee6ffacff5681f9665b19d91214345ad,delivered,2018-08-10 12:43:39,2018-08-10 12:55:24,2018-08-13 16:21:00,2018-08-19 19:21:58,2018-08-22,2018-08-19 19:21:58,U

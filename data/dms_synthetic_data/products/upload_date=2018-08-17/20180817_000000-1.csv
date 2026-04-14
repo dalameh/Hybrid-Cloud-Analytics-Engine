@@ -1,4 +1,0 @@
-product_id,product_category_name,product_name_lenght,product_description_lenght,product_photos_qty,product_weight_g,product_length_cm,product_height_cm,product_width_cm,AR_H_COMMIT_TIMESTAMP,OP
-9116d72465bec45e9931216018aa5b2d,cama_mesa_banho,53.0,329.0,4.0,1150.0,40.0,5.0,30.0,2018-08-17 00:25:31,I
-f6a4dc24146fe1030460898ff26ed0af,telefonia,59.0,325.0,2.0,150.0,21.0,7.0,14.0,2018-08-17 00:29:48,I
-a9561ee69e9f8808eb4add53d720a447,cama_mesa_banho,32.0,376.0,1.0,24300.0,50.0,50.0,40.0,2018-08-17 01:04:15,I
