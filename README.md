@@ -26,7 +26,7 @@
   - [S3 Data Lakehouse](#s3-data-lakehouse)
   - [SNS — Event Fan-out](#sns--event-fan-out)
   - [SQS — Durable Work Buffer](#sqs--durable-work-buffer)
-- [Continuous CDC Replication](#-continuous-cdc-replication-simulated)
+- [Continuous CDC Replication — AWS DMS](#-continuous-cdc-replication-simulated)
 - [ETL Pipeline — Databricks DLT](#️-etl-pipeline--databricks-dlt)
   - [Bronze — Raw Ingestion & Checkpointing](#bronze--raw-ingestion--checkpointing)
   - [Silver — Data Quality & CDC Upserts](#silver--data-quality--cdc-upserts)
@@ -156,7 +156,7 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 
 ---
 
-## 🔄 Continuous CDC Replication (Simulated)
+## 🔄 Continuous CDC Replication (Simulated) - AWS DMS
 
 The on-premise ERP Full Load + Change Data Capture is simulated by a **Python Boto3 agent** that replicates the behavior of DMS's built-in replication engine.
 
