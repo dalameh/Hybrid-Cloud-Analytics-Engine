@@ -305,13 +305,7 @@ Gold is the analytics-serving layer, modelled as a **star schema** with clear se
 
 The pipeline runs on a **daily cron schedule at midnight** via a Databricks Workflow. The job chains two tasks with strict dependency:
 
-```
-[Task 1]  Run DLT Pipeline (Bronze → Silver → Gold)
-              ↓  on success only
-[Task 2]  Trigger Power BI semantic model refresh
-              ↓  on failure
-[Alert]   Email / webhook notification
-```
+<img width="1654" height="647" alt="image" src="https://github.com/user-attachments/assets/4a4de16d-5733-48b0-a749-aa3f688478a7" />
 
 This separation is intentional: the CDC agent replicates continuously throughout the day, while the DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops.
 
