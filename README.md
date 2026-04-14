@@ -281,7 +281,8 @@ This separation is intentional: the CDC agent replicates continuously throughout
 
 After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics.
 
-> _Dashboard screenshot placeholder_
+<img width="1717" height="768" alt="image" src="https://github.com/user-attachments/assets/ef99232d-6642-4516-857c-b10ff3a78898" />
+<img width="1716" height="589" alt="image" src="https://github.com/user-attachments/assets/252f302f-b591-431c-8367-88ce1abae351" />
 
 ---
 
