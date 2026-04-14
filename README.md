@@ -48,9 +48,9 @@ Olist is a Brazilian e-commerce ecosystem that acts as a strategic integrator, c
 
 ### The Challenge: Breaking the Analytical Bottleneck
 
-The enterprise is currently tethered to an on-premise ERP monolith that was designed for transactional stability, not modern analytical scale. This legacy architecture forces business intelligence queries to compete with real-time operations for the same hardware resources, creating a performance bottleneck that degrades OLTP performance, risking system instability and downtime during peak high-volume retail periods.
+The enterprise is currently tethered to an **on-premise ERP monolith** that was designed for transactional stability, not modern analytical scale. This legacy architecture forces business intelligence queries to compete with real-time operations for the same hardware resources, creating a performance bottleneck that degrades OLTP performance, risking system instability and downtime during peak high-volume retail periods.
 
-To unlock the next phase of growth, leadership is pivoting to a Hybrid-Cloud integration strategy to migrate and synchronize transactional data into a unified cloud data warehouse. By decoupling analytical workloads from the on-premise core, the enterprise aims to:
+To unlock the next phase of growth, leadership is pivoting to a **Hybrid-Cloud integration strategy** to migrate and synchronize transactional data into a **unified cloud data warehouse**. By decoupling analytical workloads from the on-premise core, the enterprise aims to:
 
 | Goal | Description |
 |:---|:---|
@@ -63,7 +63,7 @@ To unlock the next phase of growth, leadership is pivoting to a Hybrid-Cloud int
 
 This architecture bridges an on-premise ERP monolith to a Databricks Lakehouse using a continuous Change Data Capture (CDC) pipeline. By leveraging AWS DMS (simulated), transactional state changes are replicated into the cloud in real-time, completely offloading analytical overhead from the production OLTP engine.
 
-The data flows through a governed Medallion architecture within Unity Catalog, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled Databricks Workflows job runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the Power BI REST API upon completion, ensuring leadership dashboards reflect the latest business state without manual intervention.
+The data flows through a governed **Medallion architecture within Unity Catalog**, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled **Databricks Workflows job** runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the **Power BI REST API** upon completion, ensuring leadership dashboards reflect the latest business state without manual intervention.
 
 ---
 
