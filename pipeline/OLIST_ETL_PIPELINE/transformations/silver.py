@@ -18,49 +18,11 @@ from pyspark.sql.types import BooleanType, StringType, TimestampType
 #   - LAD (late-arriving dimension) placeholder support
 #   - CDC handling (Insert / Update / Delete via DMS Op column)
 #
-# DESIGN NOTES
-# ------------
-# - All @dp.table, @dp.temporary_view, and dp.create_auto_cdc_flow() calls
-#   are declared EXPLICITLY — no dynamic loops. SDP requires a fully static
-#   DAG known at import time; loops with closures cause silent data bugs
-#   and break lineage.
-#
-# - CDC (I/U/D) is handled via dp.create_auto_cdc_flow() on every Silver
-#   table. SDP manages deduplication internally using sequence_by, which
-#   replaces the manual dedupe_latest_by_pk in the non-SDP pipeline.
-#   apply_as_deletes=F.col(CDC_OP_COL) == "D" replaces the manual
-#   .whenMatchedDelete() merge condition in the non-SDP pipeline.
-#
 # - The pattern per Silver table is:
 #       1. @dp.temporary_view("<table>_clean_cdc")      — DQ-filtered streaming view; CDC source
 #       2. @dp.table("<table>_quarantine")              — rejected rows (append-only)
 #       3. dp.create_streaming_table("<table>")         — explicit target table
 #       4. dp.create_auto_cdc_flow(target="<table>", source="<table>_clean_cdc", ...)
-#
-#   Op='D' rows bypass DQ validation entirely (they carry no payload to
-#   validate) and are included in <table>_clean_cdc so create_auto_cdc_flow
-#   can honour the delete.
-#
-# - Bronze tables are read via spark.readStream.table() — SDP manages
-#   incremental state and checkpoints. No watermark control table is needed.
-#
-# - Quarantine tables are separate @dp.table definitions that read the
-#   same bronze stream independently. Side-effects inside @dp.table
-#   functions are not allowed.
-#
-# - LAD reconciliation uses spark.read.table() (batch snapshot of Silver
-#   dims) inside dedicated @dp.temporary_view +
-#   dp.create_auto_cdc_flow() flows. LAD views also exclude keys already
-#   present in the quarantine tables (known-bad data should not get a
-#   placeholder — matches non-SDP logic).
-#
-# - sequence_by uses F.coalesce(CDC_COMMIT_COL, ingested_at) to mirror
-#   the non-SDP dedupe ordering: DMS commit timestamp is authoritative;
-#   ingested_at is the fallback for pre-CDC / backfill rows.
-#
-# - All Silver table names use fully qualified catalog.schema.table notation
-#   because the pipeline default schema is bronze. Temporary views remain
-#   unqualified (they are pipeline-private and not published to any schema).
 #
 # SDP PIPELINE SETTINGS (recommended)
 # ------------------------------------
@@ -96,6 +58,7 @@ SILVER_TABLE_PROPERTIES = {
     "delta.autoOptimize.optimizeWrite": "true",
     "delta.autoOptimize.autoCompact":   "true",
     "pipelines.autoOptimize.managed":   "true",
+    "delta.feature.timestampNtz": "supported"
 }
 QUARANTINE_TABLE_PROPERTIES = {
     **SILVER_TABLE_PROPERTIES,
@@ -130,23 +93,16 @@ def add_silver_metadata(df: DataFrame) -> DataFrame:
     # This timestamp is used to make the audit trail look more realistic
     # to the static datatset used for this project
     # For a real-world pipeline, this would be F.current_timestamp(
-    return df.withColumn("silver_processed_at", F.to_timestamp(
-                F.concat(
-                    F.col("ingested_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
-
-def add_lad_columns(df: DataFrame) -> DataFrame:
-    """Add LAD tracking columns. Called only for dimension tables."""
-    if "is_placeholder" not in df.columns:
-        df = df.withColumn("is_placeholder", F.lit(False).cast(BooleanType()))
-    if "placeholder_reason" not in df.columns:
-        df = df.withColumn("placeholder_reason", F.lit(None).cast(StringType()))
-    if "placeholder_created_at" not in df.columns:
-        df = df.withColumn("placeholder_created_at", F.lit(None).cast(TimestampType()))
-    return df
-
+    return df.withColumn(
+        "_silver_processed_at", 
+        F.to_timestamp(
+            F.concat(
+                F.to_date(F.col("_ingested_at")),
+                F.lit(" "),
+                F.date_format(F.current_timestamp(), "HH:mm:ss")
+            ),
+            "yyyy-MM-dd HH:mm:ss" # Prevents parsing failures
+        ).cast("timestamp_ntz")) # source of truth (ntz)
 
 def split_on_null_pk(df: DataFrame, pk_cols: List[str]) -> Tuple[DataFrame, DataFrame]:
     """Returns (valid_rows, null_pk_rows)."""
@@ -201,19 +157,20 @@ def collect_rejected(
 def add_quarantine_metadata(df: DataFrame, table_name: str) -> DataFrame:
     return (
         df
-        .withColumn("quarantine_table_name", F.lit(table_name))
-        .withColumn("quarantine_date", F.to_date(F.col("ingest_date")))
-        .withColumn("quarantine_failed_at", F.to_timestamp(
-                F.concat(
-                    F.col("ingest_date"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )
+        .withColumn("_quarantine_table_name", F.lit(table_name))
+        .withColumn("_quarantine_date", F.to_date(F.col("_ingested_at")))
+        .withColumn("_quarantine_failed_at", 
+                F.to_timestamp(
+                    F.concat(
+                        F.to_date(F.col("_ingested_at")),
+                        F.lit(" "),
+                        F.date_format(F.current_timestamp(), "HH:mm:ss"),
+                    ), 
+                    "yyyy-MM-dd HH:mm:ss"
+                ).cast("timestamp_ntz")
         ))
-        # .withColumn("quarantine_failed_at",  F.current_timestamp())
-        # .withColumn("quarantine_date",       F.to_date(F.current_timestamp()))
-    )
-
+        # .withColumn("_quarantine_failed_at",  F.current_timestamp())
+        # .withColumn("_quarantine_date",       F.to_date(F.current_timestamp()
 
 # =========================================================
 # 3. PER-TABLE BASE TRANSFORMS
@@ -260,11 +217,11 @@ def _base_product_category_name_translation(df: DataFrame) -> DataFrame:
 
 def _base_orders(df: DataFrame) -> DataFrame:
     _ORDER_CASTS = {
-        "order_purchase_timestamp":      "timestamp",
-        "order_approved_at":             "timestamp",
-        "order_delivered_carrier_date":  "timestamp",
-        "order_delivered_customer_date": "timestamp",
-        "order_estimated_delivery_date": "timestamp",
+        "order_purchase_timestamp":      "timestamp_ntz",
+        "order_approved_at":             "timestamp_ntz",
+        "order_delivered_carrier_date":  "timestamp_ntz",
+        "order_delivered_customer_date": "timestamp_ntz",
+        "order_estimated_delivery_date": "timestamp_ntz",
     }
     df = trim_all_strings(df)
     df = cast_columns(df, _ORDER_CASTS)
@@ -277,7 +234,7 @@ def _base_orders(df: DataFrame) -> DataFrame:
 def _base_order_items(df: DataFrame) -> DataFrame:
     _ORDER_ITEMS_CASTS = {
         "order_item_id":       "int",
-        "shipping_limit_date": "timestamp",
+        "shipping_limit_date": "timestamp_ntz",
         "price":               "double",
         "freight_value":       "double",
     }
@@ -301,7 +258,7 @@ def _base_reviews(df: DataFrame) -> DataFrame:
     _REVIEW_CASTS = {
         "review_score":            "int",
         "review_creation_date":    "date",
-        "review_answer_timestamp": "timestamp",
+        "review_answer_timestamp": "timestamp_ntz",
     }
     df = trim_all_strings(df)
     df = cast_columns(df, _REVIEW_CASTS)
@@ -343,7 +300,6 @@ def _clean_customers(df: DataFrame) -> DataFrame:
     clean, _ = _rules_customers(non_deletes)
     clean, _ = split_on_null_pk(clean, ["customer_id"])
     clean     = add_silver_metadata(clean)
-    clean     = add_lad_columns(clean)
 
     if CDC_OP_COL in df.columns:
         clean = clean.unionByName(deletes, allowMissingColumns=True)
@@ -388,8 +344,6 @@ def _clean_sellers(df: DataFrame) -> DataFrame:
     clean, _ = _rules_sellers(non_deletes)
     clean, _ = split_on_null_pk(clean, ["seller_id"])
     clean     = add_silver_metadata(clean)
-    clean     = add_lad_columns(clean)
-
     if CDC_OP_COL in df.columns:
         clean = clean.unionByName(deletes, allowMissingColumns=True)
     return clean
@@ -435,7 +389,6 @@ def _clean_products(df: DataFrame) -> DataFrame:
     clean, _ = _rules_products(non_deletes)
     clean, _ = split_on_null_pk(clean, ["product_id"])
     clean     = add_silver_metadata(clean)
-    clean     = add_lad_columns(clean)
 
     if CDC_OP_COL in df.columns:
         clean = clean.unionByName(deletes, allowMissingColumns=True)
@@ -683,9 +636,9 @@ def _quarantine_reviews(df: DataFrame) -> DataFrame:
 # All published Silver tables use fully qualified catalog.schema.table names.
 #
 # create_auto_cdc_flow() parameters:
-#   sequence_by  = coalesce(CDC_COMMIT_COL, ingested_at)
+#   sequence_by  = coalesce(CDC_COMMIT_COL, _ingested_at)
 #                  Mirrors non-SDP dedupe_latest_by_pk ordering:
-#                  DMS commit timestamp is authoritative; ingested_at is the
+#                  DMS commit timestamp is authoritative; _ingested_at is the
 #                  fallback for pre-CDC / backfill rows without AR_H_COMMIT_TIMESTAMP.
 #   apply_as_deletes = F.col(CDC_OP_COL) == "D"
 #                  Replaces the non-SDP .whenMatchedDelete(condition="s.Op = 'D'").
@@ -718,7 +671,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.customers",
     source           = "customers_clean_cdc",
     keys             = ["customer_id"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
     name             = "customers_cdc",
@@ -743,7 +696,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.sellers",
     source           = "sellers_clean_cdc",
     keys             = ["seller_id"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
     name             = "sellers_cdc",
@@ -768,7 +721,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.products",
     source           = "products_clean_cdc",
     keys             = ["product_id"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
     name             = "products_cdc",
@@ -792,7 +745,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.product_category_name_translation",
     source           = "product_category_name_translation_clean_cdc",
     keys             = ["product_category_name"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -818,7 +771,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.orders",
     source           = "orders_clean_cdc",
     keys             = ["order_id"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -841,7 +794,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.order_items",
     source           = "order_items_clean_cdc",
     keys             = ["order_id", "order_item_id"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -864,7 +817,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.payments",
     source           = "payments_clean_cdc",
     keys             = ["order_id", "payment_sequential"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -887,7 +840,7 @@ dp.create_auto_cdc_flow(
     target           = f"{CATALOG}.{SILVER_SCHEMA}.reviews",
     source           = "reviews_clean_cdc",
     keys             = ["review_id", "order_id"],
-    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("ingested_at")),
+    sequence_by      = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_ingested_at")),
     apply_as_deletes = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -898,7 +851,7 @@ dp.create_auto_cdc_flow(
 # =========================================================
 # Each source table has a companion quarantine @dp.table that reads the
 # same bronze stream independently and keeps only rejected rows.
-# Append-only, partitioned by quarantine_date.
+# Append-only, partitioned by _quarantine_date.
 #
 # Op='D' rows are excluded from quarantine in all _quarantine_* functions —
 # deletes are not bad data.
@@ -906,7 +859,7 @@ dp.create_auto_cdc_flow(
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.customers_quarantine",
     comment="Quarantine for rejected customers rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def customers_quarantine():
@@ -918,7 +871,7 @@ def customers_quarantine():
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.sellers_quarantine",
     comment="Quarantine for rejected sellers rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def sellers_quarantine():
@@ -930,7 +883,7 @@ def sellers_quarantine():
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.products_quarantine",
     comment="Quarantine for rejected products rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def products_quarantine():
@@ -942,7 +895,7 @@ def products_quarantine():
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.product_category_name_translation_quarantine",
     comment="Quarantine for rejected product_category_name_translation rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def product_category_name_translation_quarantine():
@@ -954,7 +907,7 @@ def product_category_name_translation_quarantine():
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.orders_quarantine",
     comment="Quarantine for rejected orders rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def orders_quarantine():
@@ -966,7 +919,7 @@ def orders_quarantine():
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.order_items_quarantine",
     comment="Quarantine for rejected order_items rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def order_items_quarantine():
@@ -978,7 +931,7 @@ def order_items_quarantine():
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.payments_quarantine",
     comment="Quarantine for rejected payments rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def payments_quarantine():
@@ -990,191 +943,10 @@ def payments_quarantine():
 @dp.table(
     name=f"{CATALOG}.{SILVER_SCHEMA}.reviews_quarantine",
     comment="Quarantine for rejected reviews rows",
-    partition_cols=["quarantine_date"],
+    partition_cols=["_quarantine_date"],
     table_properties=QUARANTINE_TABLE_PROPERTIES,
 )
 def reviews_quarantine():
     return _quarantine_reviews(
         spark.readStream.table(f"{CATALOG}.{BRONZE_SCHEMA}.reviews")
     )
-
-
-# =========================================================
-# 7. LAD (LATE-ARRIVING DIMENSION) RECONCILIATION
-# =========================================================
-# For each fact → dimension FK reference:
-#   1. @dp.temporary_view : anti-join fact FK keys against existing
-#                   non-placeholder Silver dim PKs to find gaps. Also
-#                   excludes keys already in the quarantine table (known-bad
-#                   data should not get a placeholder — mirrors non-SDP
-#                   get_missing_dimension_keys).
-#   2. @dp.temporary_view : turn missing keys into placeholder rows.
-#   3. dp.create_auto_cdc_flow() : merge placeholders into the live Silver
-#                   dim using ignore_null_updates=True so real rows are never
-#                   overwritten by a placeholder.
-#
-# spark.read.table() (batch snapshot) is used — LAD reconciliation is a
-# look-back against the current Silver snapshot, not a forward stream.
-#
-# All LAD views are pipeline-private temporary views (unqualified names).
-# CDC targets use fully qualified names.
-#
-# Real rows arriving later from Bronze overwrite placeholders via the normal
-# Silver create_auto_cdc_flow() above (later sequence_by value wins).
-
-# ─── orders → customers ───────────────────────────────────────────────────
-
-# @dp.temporary_view(name="lad_missing_customers_from_orders")
-# def lad_missing_customers_from_orders():
-#     fact_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.orders")
-#         .select(F.col("customer_id"))
-#         .filter(F.col("customer_id").isNotNull())
-#         .distinct()
-#     )
-#     dim_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.customers")
-#         .filter(F.col("is_placeholder") == False)
-#         .select("customer_id")
-#         .distinct()
-#     )
-#     quarantine_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.customers_quarantine")
-#         .select(F.col("customer_id"))
-#         .filter(F.col("customer_id").isNotNull())
-#         .distinct()
-#     )
-#     # Anti-join against both Silver non-placeholders and quarantine.
-#     # Keys already in quarantine are known-bad data — do not create placeholders.
-#     missing = fact_keys.join(dim_keys, "customer_id", "left_anti")
-#     return missing.join(quarantine_keys, "customer_id", "left_anti")
-
-
-# @dp.temporary_view(
-#     name="lad_placeholders_customers_from_orders",
-#     comment="LAD placeholders: customers referenced in orders but missing in Silver",
-# )
-# def lad_placeholders_customers_from_orders():
-#     return (
-#         spark.read.table("lad_missing_customers_from_orders")
-#         .withColumn("is_placeholder",         F.lit(True))
-#         .withColumn("placeholder_reason",     F.lit("late_arriving_dimension"))
-#         .withColumn("placeholder_created_at", F.current_timestamp())
-#         .withColumn("silver_processed_at",    F.lit(None).cast(TimestampType()))
-#         .withColumn("customer_state",         F.lit(None).cast(StringType()))
-#     )
-
-
-# dp.create_auto_cdc_flow(
-#     target              = f"{CATALOG}.{SILVER_SCHEMA}.customers",
-#     source              = "lad_placeholders_customers_from_orders",
-#     keys                = ["customer_id"],
-#     sequence_by         = F.col("placeholder_created_at"),
-#     ignore_null_updates = True,
-#     stored_as_scd_type  = 1,
-#     name                = "customers_lad",
-# )
-
-
-# # ─── order_items → products ───────────────────────────────────────────────
-
-# @dp.temporary_view(name="lad_missing_products_from_order_items")
-# def lad_missing_products_from_order_items():
-#     fact_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.order_items")
-#         .select(F.col("product_id"))
-#         .filter(F.col("product_id").isNotNull())
-#         .distinct()
-#     )
-#     dim_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.products")
-#         .filter(F.col("is_placeholder") == False)
-#         .select("product_id")
-#         .distinct()
-#     )
-#     quarantine_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.products_quarantine")
-#         .select(F.col("product_id"))
-#         .filter(F.col("product_id").isNotNull())
-#         .distinct()
-#     )
-#     missing = fact_keys.join(dim_keys, "product_id", "left_anti")
-#     return missing.join(quarantine_keys, "product_id", "left_anti")
-
-
-# @dp.temporary_view(
-#     name="lad_placeholders_products_from_order_items",
-#     comment="LAD placeholders: products referenced in order_items but missing in Silver",
-# )
-# def lad_placeholders_products_from_order_items():
-#     return (
-#         spark.read.table("lad_missing_products_from_order_items")
-#         .withColumn("is_placeholder",         F.lit(True))
-#         .withColumn("placeholder_reason",     F.lit("late_arriving_dimension"))
-#         .withColumn("placeholder_created_at", F.current_timestamp())
-#         .withColumn("silver_processed_at",    F.lit(None).cast(TimestampType()))
-#         .withColumn("product_category_name",  F.lit(None).cast(StringType()))
-#     )
-
-
-# dp.create_auto_cdc_flow(
-#     target              = f"{CATALOG}.{SILVER_SCHEMA}.products",
-#     source              = "lad_placeholders_products_from_order_items",
-#     keys                = ["product_id"],
-#     sequence_by         = F.col("placeholder_created_at"),
-#     ignore_null_updates = True,
-#     stored_as_scd_type  = 1,
-#     name                = "products_lad",
-# )
-
-
-# # ─── order_items → sellers ────────────────────────────────────────────────
-
-# @dp.temporary_view(name="lad_missing_sellers_from_order_items")
-# def lad_missing_sellers_from_order_items():
-#     fact_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.order_items")
-#         .select(F.col("seller_id"))
-#         .filter(F.col("seller_id").isNotNull())
-#         .distinct()
-#     )
-#     dim_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.sellers")
-#         .filter(F.col("is_placeholder") == False)
-#         .select("seller_id")
-#         .distinct()
-#     )
-#     quarantine_keys = (
-#         spark.read.table(f"{CATALOG}.{SILVER_SCHEMA}.sellers_quarantine")
-#         .select(F.col("seller_id"))
-#         .filter(F.col("seller_id").isNotNull())
-#         .distinct()
-#     )
-#     missing = fact_keys.join(dim_keys, "seller_id", "left_anti")
-#     return missing.join(quarantine_keys, "seller_id", "left_anti")
-
-
-# @dp.temporary_view(
-#     name="lad_placeholders_sellers_from_order_items",
-#     comment="LAD placeholders: sellers referenced in order_items but missing in Silver",
-# )
-# def lad_placeholders_sellers_from_order_items():
-#     return (
-#         spark.read.table("lad_missing_sellers_from_order_items")
-#         .withColumn("is_placeholder",         F.lit(True))
-#         .withColumn("placeholder_reason",     F.lit("late_arriving_dimension"))
-#         .withColumn("placeholder_created_at", F.current_timestamp())
-#         .withColumn("silver_processed_at",    F.lit(None).cast(TimestampType()))
-#         .withColumn("seller_state",           F.lit(None).cast(StringType()))
-#     )
-
-
-# dp.create_auto_cdc_flow(
-#     target              = f"{CATALOG}.{SILVER_SCHEMA}.sellers",
-#     source              = "lad_placeholders_sellers_from_order_items",
-#     keys                = ["seller_id"],
-#     sequence_by         = F.col("placeholder_created_at"),
-#     ignore_null_updates = True,
-#     stored_as_scd_type  = 1,
-#     name                = "sellers_lad",
-# )

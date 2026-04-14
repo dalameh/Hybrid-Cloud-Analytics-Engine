@@ -9,6 +9,7 @@ from pyspark.sql import DataFrame
 # -------
 # Ingest raw Parquet files from the landing zone into Bronze Delta tables
 # using Databricks Auto Loader (cloudFiles) inside a Declarative pipeline.
+# Bronze remains append-only and preserves raw structure
 #
 # EXPECTED LANDING LAYOUT
 # -----------------------
@@ -28,6 +29,7 @@ from pyspark.sql import DataFrame
 # 1. CONFIG
 # =========================================================
 BUCKET = "olist-ecommerce-landing-zone-useast1"
+# spark.conf.set("spark.sql.timestampType", "TIMESTAMP_NTZ")
 
 # Shared table properties for all Bronze tables
 BRONZE_TABLE_PROPERTIES = {
@@ -48,6 +50,9 @@ def read_landing_table(table_name: str) -> DataFrame:
     Assumes landing files are stored in Hive-style partition folders:
       s3://<bucket>/landing/<table_name>/year=/month=/day=/file.parquet
 
+    Important:
+    - The pipeline manages stream state, checkpoints, and schema tracking
+      internally. Do NOT set cloudFiles.schemaLocation manually.
     """
     landing_path = f"s3://{BUCKET}/landing/{table_name}/"
 
@@ -64,24 +69,24 @@ def add_bronze_metadata(df: DataFrame) -> DataFrame:
     Adds standardized Bronze metadata columns to every ingested table.
 
     Added columns:
-    - _ingested_at      : TIMESTAMP_NTZ combining upload_date + current wall-clock time
-    - _source_file_path : full source file path from Auto Loader metadata
+    - ingest_date      : DATE derived from upload_date (used for partitioning)
+    - ingested_at      : TIMESTAMP combining upload_date + current wall-clock time
+    - source_file_path : full source file path from Auto Loader metadata
     """
-    return (
-        df.select(
-            "*",
-            # This timestamp is used to make the audit trail look more realistic
-            # to the static datatset used for this project
-            # For a real-world pipeline, this would be F.current_timestamp(
-            F.to_timestamp(
-                F.concat_ws(" ", 
-                    F.concat_ws("-", "year", "month", "day"), 
-                    F.date_format(F.current_timestamp(), "HH:mm:ss")
-                )
-            ).cast("timestamp_ntz").alias("_ingested_at"),
-            F.col("_metadata.file_path").alias("_source_file_path")
-        )
-    )
+    return df.withColumn(
+        "_ingested_at", 
+        F.to_timestamp(
+            F.concat(
+                F.to_date(F.concat(
+                    F.col("year"), F.lit("-"), 
+                    F.col("month"), F.lit("-"), 
+                    F.col("day")
+                )),
+                F.lit(" "),
+                F.date_format(F.current_timestamp(), "HH:mm:ss")
+            ),
+            "yyyy-MM-dd HH:mm:ss"
+        ).cast("timestamp_ntz")) # source of truth (ntz)
 
 # =========================================================
 # 3. BRONZE TABLES

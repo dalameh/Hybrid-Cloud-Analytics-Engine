@@ -43,44 +43,17 @@ from pyspark.sql.types import (
 # All dims and facts use surrogate keys (bigint) derived via F.hash()
 # (Murmur3, 32-bit) over the natural business key(s). This is:
 #   - Deterministic : same input always produces the same SK
-#   - Distributed-safe : no sequence generator needed in Spark/SDP
 #   - Reproducible  : re-running the pipeline produces identical SKs
 #   - Storage-efficient : replaces 36-char UUID strings with 8-byte bigints
 #                         for faster joins and smaller fact tables
 #
-# For datasets >100M rows swap F.hash() → F.xxhash64() for lower collision
-# probability (64-bit vs 32-bit key space).
-#
-# Z-ORDERING
+# Liquid Clustering
 # ----------
 # Applied via "pipelines.clusteringColumns" table property.
-# SDP (DBR 13+) reads this property and applies Z-ordering automatically
+# SDP (DBR 13+) reads this property and applies Liquid Clustering automatically
 # on each pipeline run. Clustering columns are chosen per table based on
 # the dominant BI access pattern (what the dashboard filters on first).
-#
-# DASHBOARD QUERY MAP — every KPI and visual, single-hop joins only
-# -----------------------------------------------------------------
-# Total GMV              → SUM(fact_order_items.gmv_item)
-# Order Volume           → COUNT(DISTINCT fact_order_items.order_id)
-# AOV (seller-contract)  → GMV / COUNT(DISTINCT order_id)
-# AOV (true cart)        → GMV / COUNT(DISTINCT fact_reviews.review_id)
-# CSAT                   → AVG(fact_reviews.review_score)
-# On-Time Delivery %     → AVG(CAST(dim_order.is_on_time AS INT))
-#                          WHERE is_delivered = TRUE
-# Monthly GMV trend      → fact_order_items JOIN dim_date ON purchase_date_sk
-# GMV by State (customer)→ fact_order_items JOIN dim_customer ON customer_sk
-# GMV by State (seller)  → fact_order_items JOIN dim_seller ON seller_sk
-# Category Leaderboard   → fact_order_items JOIN dim_product ON product_sk
-# Delivery vs CSAT       → fact_reviews JOIN dim_order ON order_sk
-# Seller Pareto          → fact_order_items JOIN dim_seller ON seller_sk
-# Payment method donut   → fact_payments GROUP BY payment_type
-# Installment behaviour  → fact_payments GROUP BY payment_installments
-# True shopping trips    → COUNT(DISTINCT fact_reviews.review_id)
-#
-# All Gold table names use fully qualified catalog.schema.table notation
-# because the pipeline default schema is bronze. Stage views are temporary
-# (pipeline-private, unqualified names).
-#
+
 # STREAMING FROM CDC TARGETS (Change Data Feed)
 # ----------------------------------------------
 # All Silver tables are CDC targets (updated via dp.create_auto_cdc_flow
@@ -132,14 +105,16 @@ def surrogate_key(*natural_key_cols) -> F.Column:
 
 def gold_table_properties(cluster_cols: list) -> dict:
     """
-    Standard Gold table properties with Z-ordering via liquid clustering.
-    pipelines.clusteringColumns is read by SDP to auto-apply ZORDER on each run.
+    Standard Gold table properties with liquid clustering for faster writes and reads.
+    Because the values are stored in tight "clusters" within files, it minimizes data skipping and shuffling. 
+    pipelines.clusteringColumns is read by SDP to auto-apply liquid clustering on each run.
     """
     return {
         "quality":                          "gold",
         "delta.autoOptimize.optimizeWrite": "true",
         "delta.autoOptimize.autoCompact":   "true",
         "pipelines.autoOptimize.managed":   "true",
+        "delta.feature.timestampNtz": "supported",
         "pipelines.clusteringColumns":      ",".join(cluster_cols),
     }
 
@@ -167,27 +142,32 @@ def gold(table: str) -> str:
 
 @dp.materialized_view(
     name=gold("dim_date"),
-    comment="Dense calendar spine 2016–2019 covering full Olist dataset range",
+    comment="Dynamic calendar spine derived from Silver activity",
     table_properties=gold_table_properties(["date_actual"]),
 )
 def dim_date() -> DataFrame:
-    from pyspark.sql import SparkSession
-    spark = SparkSession.builder.getOrCreate()
 
-    date_range = spark.sql(f"""
-        SELECT explode(
-            sequence(
-                to_date('{DATE_SPINE_START}'),
-                to_date('{DATE_SPINE_END}'),
-                interval 1 day
+    # 1. Compute bounds as a single-row DataFrame — never leaves the cluster
+    bounds = spark.table("olist_prod.silver.orders").select(
+        F.min("order_purchase_timestamp").cast("date").alias("start_date"),
+        F.add_months(F.max("order_purchase_timestamp"), 12).cast("date").alias("end_date")
+    )
+
+    # 2. Generate the spine via cross-join — no collect(), fully distributed
+    date_range = bounds.select(
+        F.explode(
+            F.sequence(
+                F.col("start_date"),
+                F.col("end_date"),
+                F.expr("interval 1 day")
             )
-        ) AS date_actual
-    """)
+        ).alias("date_actual")
+    )
 
     return (
         date_range
         .withColumn("date_sk",
-            surrogate_key(F.col("date_actual").cast(StringType()))
+            surrogate_key(F.col("date_actual").cast("string"))
         )
         .withColumn("year",           F.year("date_actual"))
         .withColumn("quarter",        F.quarter("date_actual"))
@@ -197,33 +177,22 @@ def dim_date() -> DataFrame:
         .withColumn("year_month",     F.date_format("date_actual", "yyyy-MM"))
         .withColumn("week_of_year",   F.weekofyear("date_actual"))
         .withColumn("day_of_month",   F.dayofmonth("date_actual"))
-        .withColumn("day_of_week",    F.dayofweek("date_actual"))  # 1=Sun, 7=Sat
+        .withColumn("day_of_week",    F.dayofweek("date_actual"))
         .withColumn("day_name",       F.date_format("date_actual", "EEEE"))
         .withColumn("day_short",      F.date_format("date_actual", "EEE"))
         .withColumn("is_weekend",
-            F.dayofweek("date_actual").isin([1, 7]).cast(BooleanType())
+            F.dayofweek("date_actual").isin([1, 7]).cast("boolean")
         )
         .withColumn("fiscal_year",    F.year("date_actual"))
         .withColumn("fiscal_quarter", F.quarter("date_actual"))
-        # This timestamp is used to make the audit trail look more realistic
-        # to the static datatset used for this project
-        # For a real-world pipeline, this would be F.current_timestamp(
-        # .withColumn("gold_processed_at", F.to_timestamp(
-        #         F.concat(
-        #             F.col("silver_processed_at"),
-        #             F.lit(" "),
-        #             F.date_format(F.current_timestamp(), "HH:mm:ss"),
-        #         )))
         .select(
-            "date_sk", "date_actual", "year", "quarter", "month",
-            "month_name", "month_short", "year_month",
-            "week_of_year", "day_of_month", "day_of_week",
-            "day_name", "day_short", "is_weekend",
-            "fiscal_year", "fiscal_quarter", 
-            # "gold_processed_at",
+            "date_sk",
+            "date_actual",
+            "year", "quarter", "month", "month_name", "month_short",
+            "year_month", "week_of_year", "day_of_month", "day_of_week",
+            "day_name", "day_short", "is_weekend", "fiscal_year", "fiscal_quarter"
         )
     )
-
 
 # ─── dim_customer ─────────────────────────────────────────────────────────
 # One row per customer_id (the checkout session token).
@@ -235,7 +204,7 @@ def dim_date() -> DataFrame:
 #   NEVER use COUNT(DISTINCT customer_id) for unique humans —
 #   that is COUNT(DISTINCT order_id) in disguise.
 #
-# Z-order: customer_state — geographic market concentration queries.
+# Liquid Clustering: customer_state — geographic market concentration queries.
 
 @dp.temporary_view(name="dim_customer_stage")
 def dim_customer_stage() -> DataFrame:
@@ -245,13 +214,16 @@ def dim_customer_stage() -> DataFrame:
         .withColumn("customer_sk", surrogate_key(F.col("customer_id")))
         # This timestamp is used to make the audit trail look more realistic
         # to the static datatset used for this project
-        # For a real-world pipeline, this would be F.current_timestamp(
-        .withColumn("gold_processed_at", F.to_timestamp(
+        # For a real-world pipeline, this would be F.current_timestamp()
+        .withColumn("_gold_processed_at",
+            F.to_timestamp(
                 F.concat(
-                    F.col("silver_processed_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
+                    F.to_date(F.col("_silver_processed_at")),
+                    F.lit(" "), 
+                    F.date_format(F.current_timestamp(), "HH:mm:ss")
+                ),
+                "yyyy-MM-dd HH:mm:ss"
+            ).cast("timestamp_ntz"))
         .select(
             "customer_sk",
             "customer_id",
@@ -259,9 +231,8 @@ def dim_customer_stage() -> DataFrame:
             "customer_zip_code_prefix",
             "customer_city",
             "customer_state",
-            "is_placeholder",
-            "silver_processed_at",
-            "gold_processed_at",
+            "_silver_processed_at",
+            "_gold_processed_at",
             CDC_OP_COL,
             CDC_COMMIT_COL,
         )
@@ -278,7 +249,7 @@ dp.create_auto_cdc_flow(
     target             = gold("dim_customer"),
     source             = "dim_customer_stage",
     keys               = ["customer_sk"],
-    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("silver_processed_at")),
+    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_silver_processed_at")),
     apply_as_deletes   = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -296,27 +267,28 @@ def dim_seller_stage() -> DataFrame:
         .withColumn("seller_sk", surrogate_key(F.col("seller_id")))
         # This timestamp is used to make the audit trail look more realistic
         # to the static datatset used for this project
-        # For a real-world pipeline, this would be F.current_timestamp(
-        .withColumn("gold_processed_at", F.to_timestamp(
+        # For a real-world pipeline, this would be F.current_timestamp()
+        .withColumn("_gold_processed_at", 
+            F.to_timestamp(
                 F.concat(
-                    F.col("silver_processed_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
+                    F.to_date(F.col("_silver_processed_at")),
+                    F.lit(" "), 
+                    F.date_format(F.current_timestamp(), "HH:mm:ss")
+                ),
+                "yyyy-MM-dd HH:mm:ss"
+            ).cast("timestamp_ntz"))
         .select(
             "seller_sk",
             "seller_id",
             "seller_zip_code_prefix",
             "seller_city",
             "seller_state",
-            "is_placeholder",
-            "silver_processed_at",
-            "gold_processed_at",
+            "_silver_processed_at",
+            "_gold_processed_at",
             CDC_OP_COL,
             CDC_COMMIT_COL,
         )
     )
-
 
 dp.create_streaming_table(
     name=gold("dim_seller"),
@@ -328,7 +300,7 @@ dp.create_auto_cdc_flow(
     target             = gold("dim_seller"),
     source             = "dim_seller_stage",
     keys               = ["seller_sk"],
-    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("silver_processed_at")),
+    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_silver_processed_at")),
     apply_as_deletes   = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -342,7 +314,7 @@ dp.create_auto_cdc_flow(
 # NOTE: spark.readStream + spark.read (batch) join is valid in SDP — the batch
 # side (translations) is snapshotted at the start of each pipeline run.
 #
-# Z-order: product_category_name_english — category leaderboard queries.
+# Liquid Clustering: product_category_name_english — category leaderboard queries.
 
 @dp.temporary_view(name="dim_product_stage")
 def dim_product_stage() -> DataFrame:
@@ -372,13 +344,16 @@ def dim_product_stage() -> DataFrame:
         .withColumn("product_sk", surrogate_key(F.col("product_id")))
         # This timestamp is used to make the audit trail look more realistic
         # to the static datatset used for this project
-        # For a real-world pipeline, this would be F.current_timestamp(
-        .withColumn("gold_processed_at", F.to_timestamp(
+        # For a real-world pipeline, this would be F.current_timestamp()
+        .withColumn("_gold_processed_at", 
+            F.to_timestamp(
                 F.concat(
-                    F.col("silver_processed_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
+                    F.to_date(F.col("_silver_processed_at")),
+                    F.lit(" "), 
+                    F.date_format(F.current_timestamp(), "HH:mm:ss")
+                ),
+                "yyyy-MM-dd HH:mm:ss"
+            ).cast("timestamp_ntz"))
         .select(
             "product_sk",
             "product_id",
@@ -391,9 +366,8 @@ def dim_product_stage() -> DataFrame:
             "product_length_cm",
             "product_height_cm",
             "product_width_cm",
-            "is_placeholder",
-            "silver_processed_at",
-            "gold_processed_at",
+            "_silver_processed_at",
+            "_gold_processed_at",
             CDC_OP_COL,
             CDC_COMMIT_COL,
         )
@@ -410,7 +384,7 @@ dp.create_auto_cdc_flow(
     target             = gold("dim_product"),
     source             = "dim_product_stage",
     keys               = ["product_sk"],
-    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("silver_processed_at")),
+    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_silver_processed_at")),
     apply_as_deletes   = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -431,11 +405,7 @@ dp.create_auto_cdc_flow(
 #                         to get correct On-Time Delivery %.
 #   is_delivered        : order_status == 'delivered'
 #
-# DASHBOARD FORMULAS:
-#   On-Time % → AVG(CAST(is_on_time AS INT)) WHERE is_delivered = TRUE
-#   Lead time → AVG(delivery_days) GROUP BY dim_date.year_month
-#
-# Z-order: purchase_date_sk, order_status — time-range + status filters.
+# Liquid Clustering: purchase_date_sk, order_status — time-range + status filters.
 
 @dp.temporary_view(name="dim_order_stage")
 def dim_order_stage() -> DataFrame:
@@ -506,13 +476,16 @@ def dim_order_stage() -> DataFrame:
         )
         # This timestamp is used to make the audit trail look more realistic
         # to the static datatset used for this project
-        # For a real-world pipeline, this would be F.current_timestamp(
-        .withColumn("gold_processed_at", F.to_timestamp(
+        # For a real-world pipeline, this would be F.current_timestamp()
+        .withColumn("_gold_processed_at", 
+            F.to_timestamp(
                 F.concat(
-                    F.col("silver_processed_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
+                    F.to_date(F.col("_silver_processed_at")),
+                    F.lit(" "), 
+                    F.date_format(F.current_timestamp(), "HH:mm:ss")
+                ),
+                "yyyy-MM-dd HH:mm:ss"
+            ).cast("timestamp_ntz"))
         .select(
             # Surrogate keys
             "order_sk",
@@ -523,11 +496,11 @@ def dim_order_stage() -> DataFrame:
             "customer_id",
             # Attributes
             "order_status",
-            "order_purchase_timestamp",
-            "order_approved_at",
-            "order_delivered_carrier_date",
-            "order_delivered_customer_date",
-            "order_estimated_delivery_date",
+            F.col("order_purchase_timestamp").cast("timestamp"),      # Now LTZ
+            F.col("order_approved_at").cast("timestamp"),             # Now LTZ
+            F.col("order_delivered_carrier_date").cast("timestamp"),  # Now LTZ
+            F.col("order_delivered_customer_date").cast("timestamp"),# Now LTZ
+            F.col("order_estimated_delivery_date").cast("timestamp"), # Now LTZ
             # Derived delivery metrics
             "delivery_days",
             "estimated_days",
@@ -535,8 +508,8 @@ def dim_order_stage() -> DataFrame:
             "is_on_time",
             "is_delivered",
             # Metadata
-            "silver_processed_at",
-            "gold_processed_at",
+            "_silver_processed_at",
+            "_gold_processed_at",
             CDC_OP_COL,
             CDC_COMMIT_COL,
         )
@@ -553,7 +526,7 @@ dp.create_auto_cdc_flow(
     target             = gold("dim_order"),
     source             = "dim_order_stage",
     keys               = ["order_sk"],
-    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("silver_processed_at")),
+    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_silver_processed_at")),
     apply_as_deletes   = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -583,14 +556,7 @@ dp.create_auto_cdc_flow(
 #   gmv_item      : price + freight_value — total revenue per unit
 #                   SUM(gmv_item) = Total GMV (the top line)
 #
-# AOV NOTE:
-#   Seller-contract AOV = SUM(gmv_item) / COUNT(DISTINCT order_id)
-#   True cart-level AOV = SUM(gmv_item) / COUNT(DISTINCT fact_reviews.review_id)
-#   One shopping cart shreds into N order_ids (one per seller), so
-#   COUNT(DISTINCT order_id) inflates trip count. Both are computable from
-#   this table; documentation in BI layer is the analyst's responsibility.
-#
-# Z-order: purchase_date_sk, order_sk — time-range + order lookups dominate.
+#Liquid Clustering: purchase_date_sk, order_sk — time-range + order lookups dominate.
 
 @dp.temporary_view(name="fact_order_items_stage")
 def fact_order_items_stage() -> DataFrame:
@@ -624,13 +590,16 @@ def fact_order_items_stage() -> DataFrame:
         )
         # This timestamp is used to make the audit trail look more realistic
         # to the static datatset used for this project
-        # For a real-world pipeline, this would be F.current_timestamp(
-        .withColumn("gold_processed_at", F.to_timestamp(
+        # For a real-world pipeline, this would be F.current_timestamp()
+        .withColumn("_gold_processed_at", 
+            F.to_timestamp(
                 F.concat(
-                    F.col("silver_processed_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
+                    F.to_date(F.col("_silver_processed_at")),
+                    F.lit(" "), 
+                    F.date_format(F.current_timestamp(), "HH:mm:ss")
+                ),
+                "yyyy-MM-dd HH:mm:ss"
+            ).cast("timestamp_ntz"))
         .select(
             # Surrogate keys
             "order_item_sk",
@@ -649,10 +618,10 @@ def fact_order_items_stage() -> DataFrame:
             "freight_value",
             "gmv_item",
             # Attributes
-            "shipping_limit_date",
+            F.col("shipping_limit_date").cast("timestamp"),      # Now LTZ,
             # Metadata
-            "silver_processed_at",
-            "gold_processed_at",
+            "_silver_processed_at",
+            "_gold_processed_at",
             CDC_OP_COL,
             CDC_COMMIT_COL,
         )
@@ -669,7 +638,7 @@ dp.create_auto_cdc_flow(
     target             = gold("fact_order_items"),
     source             = "fact_order_items_stage",
     keys               = ["order_item_sk"],
-    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("silver_processed_at")),
+    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_silver_processed_at")),
     apply_as_deletes   = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -685,11 +654,6 @@ dp.create_auto_cdc_flow(
 #   payment_installments      : number of monthly instalments chosen
 #   monthly_instalment_value  : payment_value / payment_installments
 #                               (derived; avoids repeated division in BI)
-#
-# DASHBOARD FORMULAS:
-#   Payment method mix    → COUNT(*) or SUM(payment_value) GROUP BY payment_type
-#   Instalment behaviour  → AVG(payment_installments) GROUP BY order value bucket
-#   Total order payment   → SUM(payment_value) GROUP BY order_id
 #
 # Z-order: purchase_date_sk, payment_type — time-range + method filters.
 
@@ -725,12 +689,15 @@ def fact_payments_stage() -> DataFrame:
         # This timestamp is used to make the audit trail look more realistic
         # to the static datatset used for this project
         # For a real-world pipeline, this would be F.current_timestamp(
-        .withColumn("gold_processed_at", F.to_timestamp(
+        .withColumn("_gold_processed_at", 
+            F.to_timestamp(
                 F.concat(
-                    F.col("silver_processed_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
+                    F.to_date(F.col("_silver_processed_at")),
+                    F.lit(" "), 
+                    F.date_format(F.current_timestamp(), "HH:mm:ss")
+                ),
+                "yyyy-MM-dd HH:mm:ss"
+            ).cast("timestamp_ntz"))
         .select(
             # Surrogate keys
             "payment_sk",
@@ -745,8 +712,8 @@ def fact_payments_stage() -> DataFrame:
             "payment_value",
             "monthly_instalment_value",
             # Metadata
-            "silver_processed_at",
-            "gold_processed_at",
+            "_silver_processed_at",
+            "_gold_processed_at",
             CDC_OP_COL,
             CDC_COMMIT_COL,
         )
@@ -763,7 +730,7 @@ dp.create_auto_cdc_flow(
     target             = gold("fact_payments"),
     source             = "fact_payments_stage",
     keys               = ["payment_sk"],
-    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("silver_processed_at")),
+    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_silver_processed_at")),
     apply_as_deletes   = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
@@ -784,15 +751,6 @@ dp.create_auto_cdc_flow(
 #   One review covers one seller's fulfilment box regardless of how many
 #   order_ids were in the original cart. This is the correct denominator
 #   for cart-level AOV and trip-level conversion metrics.
-#
-# DELIVERY × CSAT SCATTER (Visual D in dashboard spec):
-#   SELECT
-#       dim_order.delivery_days       AS x,
-#       AVG(fact_reviews.review_score) AS y,
-#       COUNT(*)                       AS bubble_size
-#   FROM fact_reviews
-#   JOIN dim_order USING (order_sk)
-#   GROUP BY dim_order.delivery_days
 #
 # Z-order: purchase_date_sk, review_score — time-range + score filters.
 
@@ -825,13 +783,16 @@ def fact_reviews_stage() -> DataFrame:
         )
         # This timestamp is used to make the audit trail look more realistic
         # to the static datatset used for this project
-        # For a real-world pipeline, this would be F.current_timestamp(
-        .withColumn("gold_processed_at", F.to_timestamp(
+        # For a real-world pipeline, this would be F.current_timestamp()
+        .withColumn("_gold_processed_at", 
+            F.to_timestamp(
                 F.concat(
-                    F.col("silver_processed_at"),
-                    F.lit(" "),
-                    F.date_format(F.current_timestamp(), "HH:mm:ss"),
-                )))
+                    F.to_date(F.col("_silver_processed_at")),
+                    F.lit(" "), 
+                    F.date_format(F.current_timestamp(), "HH:mm:ss")
+                ),
+                "yyyy-MM-dd HH:mm:ss"
+            ).cast("timestamp_ntz"))
         .select(
             # Surrogate keys
             "review_sk",
@@ -843,12 +804,12 @@ def fact_reviews_stage() -> DataFrame:
             # Measures & attributes
             "review_score",
             "review_creation_date",
-            "review_answer_timestamp",
+            F.col("review_answer_timestamp").cast("timestamp"),      # Now LTZ
             "has_comment_title",
             "has_comment_message",
             # Metadata
-            "silver_processed_at",
-            "gold_processed_at",
+            "_silver_processed_at",
+            "_gold_processed_at",
             CDC_OP_COL,
             CDC_COMMIT_COL,
         )
@@ -865,7 +826,7 @@ dp.create_auto_cdc_flow(
     target             = gold("fact_reviews"),
     source             = "fact_reviews_stage",
     keys               = ["review_sk"],
-    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("silver_processed_at")),
+    sequence_by        = F.coalesce(F.col(CDC_COMMIT_COL), F.col("_silver_processed_at")),
     apply_as_deletes   = F.col(CDC_OP_COL) == "D",
     stored_as_scd_type = 1,
 )
