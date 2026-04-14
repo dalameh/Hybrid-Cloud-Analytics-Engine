@@ -313,12 +313,20 @@ The DLT pipeline processes all accumulated events in a single nightly batch — 
 
 ---
 
-## 📊 Power BI Dashboard
+## 📊 Databricks Dashboard
 
-After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics.
+After each successful pipeline run, the published Databricks Dashboard is refresh the gold tables and aggregations used to contruct the dashboard.
 
 <img width="1721" height="680" alt="image" src="https://github.com/user-attachments/assets/9034d2ab-8a37-4c9c-929f-c9284298293a" />
 <img width="1718" height="541" alt="image" src="https://github.com/user-attachments/assets/c29cf39d-e40e-4306-945d-d51f2cf9a1aa" />
+
+---
+
+
+## 📊 PowerBI Dashboard
+
+After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics.
+
 
 ---
 
