@@ -34,6 +34,7 @@
   - [Gold — Star Schema & Query Optimisation](#gold--star-schema--query-optimisation)
 - [Idempotency & Consistency Guarantees](#-idempotency--consistency-guarantees)
 - [Orchestration — Databricks Lakeflow Jobs](#-orchestration--databricks-lakeflow-jobs)
+- [Databricks Dashboard](#-databricks-dashboard)
 - [Power BI Dashboard](#-power-bi-dashboard)
 - [Repository Structure](#-repository-structure)
 - [Tech Stack](#️-tech-stack)
