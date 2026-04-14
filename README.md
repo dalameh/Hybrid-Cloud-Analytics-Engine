@@ -304,12 +304,9 @@ Gold is the analytics-serving layer, modelled as a **star schema** with clear se
 
 ## 🕛 Orchestration — Databricks Lakeflow Jobs
 
-The pipeline runs on a **daily cron schedule at midnight** via a Databricks Workflow. The job chains two tasks:
+The pipeline runs on a **daily cron schedule at midnight** via a Databricks Workflow. The DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting for the next morning. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops. The job chains two tasks:
 
 <img width="1654" height="647" alt="image" src="https://github.com/user-attachments/assets/4a4de16d-5733-48b0-a749-aa3f688478a7" />
-
-The DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting for the next morning. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops.
-
 <img width="1337" height="826" alt="image" src="https://github.com/user-attachments/assets/e4467af0-76c7-461c-9c1b-f258596a39d9" />
 
 ---
