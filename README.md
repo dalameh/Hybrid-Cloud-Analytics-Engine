@@ -4,7 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-CDC%20Agent%20Script-3776AB?style=flat-square&logo=python&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-S3%20%C2%B7%20SNS%20%C2%B7%20SQS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)
-![Databricks](https://img.shields.io/badge/Databricks-DLT%20%C2%B7%20DeltaTable-E64A19?style=flat-square&logo=databricks&logoColor=white)
+![Databricks](https://img.shields.io/badge/Databricks-DeltaTables%20%C2%B7%20DLTPipelines%20%C2%B7%20LakeFlowJobs%20%C2%B7%20SDashboards-E64A19?style=flat-square&logo=databricks&logoColor=white)
 ![PySpark](https://img.shields.io/badge/PySpark-Medallion%20Architecture-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
 ![PowerBI](https://img.shields.io/badge/Power%20BI-Executive%20Dashboard-F2C811?style=flat-square&logo=powerbi&logoColor=black)
 
@@ -63,7 +63,7 @@ To unlock the next phase of growth, leadership is pivoting to a **Hybrid-Cloud i
 
 This architecture bridges an on-premise ERP monolith to a Databricks Lakehouse using a continuous Change Data Capture (CDC) pipeline. By leveraging AWS DMS (simulated), transactional state changes are replicated into the cloud in real-time, completely offloading analytical overhead from the production OLTP engine.
 
-The data flows through a governed **Medallion architecture within Unity Catalog**, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled **Databricks Workflows job** runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the **Power BI REST API** upon completion, ensuring leadership dashboards reflect the latest business state without manual intervention.
+The data flows through a governed **Medallion architecture within Unity Catalog**, where raw relational changes are ultimately refined into a high-performance Gold-standard star schema. While AWS DMS replicates data continuously, a scheduled **Databricks Workflows job** runs daily at EOD to process the accumulated changes and push them through the pipeline. To close the loop between engineering and action, this job triggers the **Power BI REST API** and Databricks Dashboard upon completion, ensuring leadership dashboards reflect the latest business state without manual intervention.
 
 ---
 
