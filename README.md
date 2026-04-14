@@ -146,7 +146,7 @@ The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalo
 - **Managed Storage** enforces centralized governance, auditing all physical data access and restricting it to the Unity Catalog service principal
 - **SSE-S3 encryption** (AES-256) applied identically to the landing zone
 
-<img width="1878" height="587" alt="image" src="https://github.com/user-attachments/assets/c18ea940-c37e-4a4a-957b-ed47b57a1751" />
+<img width="1876" height="747" alt="image" src="https://github.com/user-attachments/assets/07725ddf-c074-448f-ad0a-1f56ed1fc3d3" />
 
 ### SNS — Event Fan-out
 
