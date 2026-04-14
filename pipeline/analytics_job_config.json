@@ -2,6 +2,11 @@
   "name": "ANALYTICS_JOB",
   "max_concurrent_runs": 1,
   "performance_target": "PERFORMANCE_OPTIMIZED",
+  "schedule": {
+    "quartz_cron_expression": "36 59 23 * * ?",
+    "timezone_id": "America/New_York",
+    "pause_status": "UNPAUSED"
+  },
   "email_notifications": {
     "on_start": [],
     "on_success": [],
@@ -19,7 +24,7 @@
     {
       "task_key": "Executive_Dashboard",
       "dashboard_task": {
-        "dashboard_id": "01f135bd48901a31b1d9620f0274e30c",
+        "dashboard_id": "01f13855c66d17c4afa67a9df508108a",
         "warehouse_id": "f9c9e695c54edf40"
       },
       "depends_on": [
