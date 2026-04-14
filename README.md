@@ -265,6 +265,9 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 
 ```
 [Task 1]  Run DLT Pipeline (Bronze → Silver → Gold)
+
+<img width="1337" height="826" alt="image" src="https://github.com/user-attachments/assets/e4467af0-76c7-461c-9c1b-f258596a39d9" />
+
               ↓  on success only
 [Task 2]  Trigger Power BI semantic model refresh
               ↓  on failure
