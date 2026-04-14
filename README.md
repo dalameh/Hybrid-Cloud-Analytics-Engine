@@ -169,8 +169,10 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 ---
 
 ## 🔄 Continuous CDC Replication (Simulated) — AWS DMS
-> ingestion/dms_synthetic_batching.py
-> ingestion/dms_synthetic_run.py
+
+> `ingestion/dms_synthetic_batching.py`
+
+> `ingestion/dms_synthetic_run.py`
 
 The on-premise ERP Full Load + Change Data Capture is simulated by a **Python Boto3 agent** that replicates the behavior of DMS's built-in replication engine.
 
@@ -191,12 +193,12 @@ The agent runs **continuously**, uploading incremental Parquet batches to S3 thr
 ---
 
 ## ⚙️ Unity Catalog Governance
-> pipeline/schema_builder.py
+
+> `pipeline/catalog_schema_builder.ipynb`
 
 I implemented **Unity Catalog** to provide a centralized governance layer for the **Unified Cloud Data Lakehouse**, moving beyond a simple "bucket of files" to a managed enterprise asset.
 
 ### Infrastructure Setup
-> `pipeline/schema_builder.ipynb
 
 I established **External Locations** to securely map S3 storage to Databricks compute. 
 * **`olist_raw_landing_zone`**: Ingestion point for raw CDC changes.
