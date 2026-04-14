@@ -181,6 +181,7 @@ The agent runs **continuously**, uploading incremental Parquet batches to S3 thr
 I implemented **Unity Catalog** to provide a centralized governance layer for the **Unified Cloud Data Lakehouse**, moving beyond a simple "bucket of files" to a managed enterprise asset.
 
 ### Infrastructure Setup
+> `analytics/schema_builder.ipynb
 I established **External Locations** to securely map S3 storage to Databricks compute. 
 * **`olist_raw_landing_zone`**: Ingestion point for raw CDC changes.
 * **`olist_datalakehouse_root`**: Storage backbone for all processed data.
@@ -213,10 +214,6 @@ CREATE SCHEMA IF NOT EXISTS olist_prod.gold;
 
 **Impact:** This setup decouples storage from compute while providing **Unified Security** and **Data Lineage** across the entire hybrid-cloud pipeline.
 
-
-
-
-
 ---
 
 ## ⚙️ ETL Pipeline — Databricks DLT
@@ -231,7 +228,7 @@ The pipeline is implemented as a **Databricks Delta Live Tables** pipeline spann
 
 The Bronze layer uses **Databricks Auto Loader** in file notification mode, consuming SQS events to discover new S3 objects. Data lands in Bronze as-is — raw, unmodified, with no type casting or business logic applied.
 
-The only additions are pipeline metadata columns (`_ingest_date`, `_ingested_at`, `_source_file`) for **end-to-end lineage tracking**. Each Olist entity lands in its own Bronze Delta table: `orders`, `order_items`, `customers`, `products`, `payments`, `reviews`, `sellers`, and `geolocation`.
+The only additions are pipeline metadata columns (`_ingested_at`, `_source_file`) for **end-to-end lineage tracking**. Each Olist entity lands in its own Bronze Delta table: `orders`, `order_items`, `customers`, `products`, `payments`, `reviews`, `sellers`, and `geolocation`.
 
 **Auto Loader checkpointing** is the foundation of the pipeline's reliability. A checkpoint directory persists the offset of every file Auto Loader has processed:
 
