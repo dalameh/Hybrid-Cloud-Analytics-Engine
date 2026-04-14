@@ -324,7 +324,7 @@ After each successful pipeline run, the published Databricks Dashboard is refres
 ---
 
 
-## 📊 PowerBI Dashboard
+## 📊 Power BI Dashboard
 
 After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics.
 
