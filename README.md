@@ -371,7 +371,7 @@ Hybrid-Cloud-Analytics-Engine/
 | **SQS Subscription Filter Policy** | Scope SQS delivery to Olist dataset prefixes only, preventing internal S3 operations from triggering the pipeline unnecessarily |
 | **SQS PrivateLink** | Route SQS traffic over a VPC private endpoint to eliminate public internet traversal |
 | **DLQ → Quarantine Bridge** | Automatically promote DLQ messages into the Silver quarantine tables for unified auditability and root-cause analysis alongside DQ failures |
-
+| **Slack Notification** | Utilize native Databricks alerts to alert a Slack Channel of job start and job success/failure |
 ---
 
 <div align="center">
