@@ -27,6 +27,7 @@
   - [SNS — Event Fan-out](#sns--event-fan-out)
   - [SQS — Durable Work Buffer](#sqs--durable-work-buffer)
 - [Continuous CDC Replication — AWS DMS](#-continuous-cdc-replication-simulated--aws-dms)
+- [Unity Catalog Governance](#️-unity-catalog-governance)
 - [ETL Pipeline — Databricks DLT Pipeline](#️-etl-pipeline--databricks-dlt)
   - [Bronze — Raw Ingestion & Checkpointing](#bronze--raw-ingestion--checkpointing)
   - [Silver — Data Quality & CDC Upserts](#silver--data-quality--cdc-upserts)
