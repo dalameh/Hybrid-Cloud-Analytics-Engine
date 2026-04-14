@@ -156,7 +156,7 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 
 ---
 
-## 🔄 Continuous CDC Replication (Simulated) - AWS DMS
+## 🔄 Continuous CDC Replication (Simulated) — AWS DMS
 
 The on-premise ERP Full Load + Change Data Capture is simulated by a **Python Boto3 agent** that replicates the behavior of DMS's built-in replication engine.
 
