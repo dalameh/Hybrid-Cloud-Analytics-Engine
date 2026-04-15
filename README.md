@@ -190,6 +190,8 @@ The on-premise ERP Full Load + Change Data Capture is simulated by a **Python Bo
 
 The agent runs **continuously**, uploading incremental Parquet batches to S3 throughout the day. The DLT pipeline then processes these accumulated CDC events in a single nightly run — separating the concern of data availability (continuous replication) from analytical consistency (daily clean Gold layer for reporting).
 
+<img width="1026" height="819" alt="image" src="https://github.com/user-attachments/assets/ee31bc0b-c042-4d04-a8cd-20f52f8c5cdd" />
+
 ---
 
 ## ⚙️ Unity Catalog Governance
@@ -318,9 +320,8 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 <img width="1337" height="826" alt="image" src="https://github.com/user-attachments/assets/e4467af0-76c7-461c-9c1b-f258596a39d9" />
 
 
-### CDC Replication:
-<img width="1648" height="825" alt="image" src="https://github.com/user-attachments/assets/fc471080-e89d-4d04-bd6c-c4a6fa1530d3" />
-
+### Change Data Capture:
+<img width="1651" height="823" alt="image" src="https://github.com/user-attachments/assets/0319f1a3-ea13-4285-8e3c-4ea70029d0ee" />
 
 ---
 
