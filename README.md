@@ -222,7 +222,7 @@ CREATE SCHEMA IF NOT EXISTS olist_prod.gold;
 
 **Impact:** This setup decouples storage from compute while providing **Unified Security** and **Data Lineage** across the entire hybrid-cloud pipeline.
 
-<img width="1662" height="425" alt="image" src="https://github.com/user-attachments/assets/1718a66a-2d77-4696-97f3-8cff557d954a" />
+<img width="1702" height="294" alt="image" src="https://github.com/user-attachments/assets/7c7c2fae-9836-4120-880a-171689793bc3" />
 <img width="1153" height="669" alt="image" src="https://github.com/user-attachments/assets/699e1f34-563f-467e-96bb-551ab4a685c3" />
 
 ---
