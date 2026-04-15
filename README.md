@@ -339,8 +339,8 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 <img width="1337" height="826" alt="image" src="https://github.com/user-attachments/assets/e4467af0-76c7-461c-9c1b-f258596a39d9" />
 
 
-### Change Data Capture:
-<img width="1651" height="823" alt="image" src="https://github.com/user-attachments/assets/0319f1a3-ea13-4285-8e3c-4ea70029d0ee" />
+### A Change Data Capture:
+<img width="1654" height="828" alt="image" src="https://github.com/user-attachments/assets/faa9a68e-5f54-449f-8287-f0e25a643207" />
 
 ---
 
