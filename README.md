@@ -268,6 +268,8 @@ Silver reads from Bronze and serves as the pipeline's enforcement and reconcilia
 
 This programmatic approach allows for complex, multi-column logic and cross-table validation that exceeds standard expectation syntax.
 
+This layer additionally adds a metadata column (`_silver_processed_at`) for lineage tracking.
+
 **Quarantine Tables:** Data that fails pre-defined DQ checks is diverted into dedicated Quarantine Tables within Unity Catalog:
 
 - **Auditability** — every quarantined record is persisted with a `_quarantine_reason` metadata column (e.g., `Negative Price`, `Null PK`), allowing for rapid root-cause analysis without stalling the main pipeline
@@ -310,6 +312,7 @@ All changed in Silver are **propogated downstream** to gold, and transformed to 
 - **Partition pruning** on high-frequency access columns (i.e. `customer_state` for dim_customers, `purchase_date` for fact_order_items, and so on) (e.g,: Power BI queries filtering by geography scan only the relevant data folders)
 - **Liquid Clustering** on high-selectivity columns — unlike traditional Z-Ordering, Liquid Clustering dynamically adjusts data layout over time, co-locating related values for sub-second response times as the dataset evolves
 
+This layer additionally adds a metadata column (`_gold_processed_at`) for lineage tracking.
 <img width="1690" height="769" alt="image" src="https://github.com/user-attachments/assets/46bd26fc-13bf-4a45-ad8b-75a105ff6841" />
 
 ---
