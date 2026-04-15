@@ -143,7 +143,7 @@ The S3 bucket `olist-ecommerce-landing-zone-useast1` is the raw system of record
 The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalog Managed Location**, providing the high-performance storage backbone for the Bronze, Silver, and Gold Delta tables.
 
 - Data is stored in optimized **Delta format** in a dedicated `_unitystorage/` directory, enabling ACID transactions, time travel, and schema enforcement across the entire pipeline
-- **Decoupled compute from storage** ensures ERP data remains persistent and accessible to both Databricks SQL and downstream ML workloads without data duplication
+- **Decoupled compute from storage** ensures ERP data remains persistent and accessible to both Databricks SQL and potential downstream ML workloads without data duplication
 - **Managed Storage** enforces centralized governance, auditing all physical data access and restricting it to the Unity Catalog service principal
 - **SSE-S3 encryption** (AES-256) applied identically to the landing zone
 
