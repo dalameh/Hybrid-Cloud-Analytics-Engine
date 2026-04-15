@@ -49,13 +49,14 @@ def read_landing_table(table_name: str) -> DataFrame:
       s3://<bucket>/landing/<table_name>/year=/month=/day=/file.parquet
 
     """
-    landing_path = f"s3://{BUCKET}/landing/{table_name}/"
+    landing_path = f"s3://{BUCKET}/landing/{table_name}"
 
     return (
         spark.readStream
         .format("cloudFiles")
         .option("cloudFiles.format", "parquet")
         .option("cloudFiles.useManagedFileEvents", "true")
+        .option("cloudFiles.partitionColumns", "year,month,day")
         .load(landing_path)
     )
 
