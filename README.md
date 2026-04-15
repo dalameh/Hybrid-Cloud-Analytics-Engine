@@ -124,7 +124,7 @@ The data flows through a governed **Medallion architecture within Unity Catalog*
 
 ## ☁️ Infrastructure — AWS CDK (IaC)
 
-All AWS infrastructure is provisioned as code using the **AWS CDK**, ensuring the environment is reproducible, version-controlled, and deployable across environments without manual configuration.
+All AWS infrastructure is provisioned as code using the **AWS CDK (Cloud Development Kit)**, which synthesizes high-level constructs into **CloudFormation** templates to ensure the environment is reproducible, version-controlled, and deployable across environments without manual configuration.
 
 ### S3 Landing Zone
 
