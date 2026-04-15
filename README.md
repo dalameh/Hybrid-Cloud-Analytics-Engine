@@ -131,6 +131,7 @@ All AWS infrastructure is provisioned as code using the **AWS CDK**, ensuring th
 The S3 bucket `olist-ecommerce-landing-zone-useast1` is the raw system of record, providing the landing zone for the full load and all on-going replications.
 
 - **Hive-style partitioning** (`dataset/year=/month=/day=`) enables efficient partition pruning downstream without full bucket scans
+- **Event notifications** enabled to send all `s3:ObjectCreated:*`, `s3:ObjectRemoved:*`, and `s3:LifecycleExpiration:*`events to sns topic `olist-landing-topic` (imperative to have all three events enabled to ensure the file events service within Databricks tracks the full lifecycle of files in its cache)
 - **Lifecycle policy** automatically transitions objects to S3 Infrequent Access after 30 days, Glacier Flexible after 90, and expires them after 365 days — keeping storage costs bounded as data accumulates
 - **Versioning** is enabled to protect against accidental overwrites during replication
 - **SSE-S3 encryption** (AES-256) is automatically applied to guarantee server-side encryption for all objects at rest
@@ -150,7 +151,7 @@ The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalo
 
 ### SNS — Event Fan-out
 
-Every `s3:ObjectCreated` event fires a notification to the `olist-landing-topic` SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. This also allows new consumers (alerting, archival, compliance auditing) to subscribe to the topic without modifying a single line of ingestion code.
+Every `s3:ObjectCreated:*`, `s3:ObjectRemoved:*`, and `s3:LifecycleExpiration:*` event fires a notification to the `olist-landing-topic` SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. This also allows new consumers (alerting, archival, compliance auditing) to subscribe to the topic without modifying a single line of ingestion code.
 
 <img width="1609" height="517" alt="image" src="https://github.com/user-attachments/assets/8d3b1a1f-25eb-4a94-8a8e-c3ec7465930f" />
 
