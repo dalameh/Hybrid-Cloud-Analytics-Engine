@@ -271,7 +271,9 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 
 **CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, regardless of duplicate SQS notifications or out-of-order event delivery. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
 
-| <img width="1317" height="285" alt="Bronze Layer" src="https://github.com/user-attachments/assets/e0d10b40-583b-4133-a9ee-3a22e88b8c33" /> | <img width="1317" height="285" alt="Silver Layer" src="https://github.com/user-attachments/assets/aba3f46f-e241-41fd-bfc1-7a86178aa0d7" /> |
+<img width="1862" height="318" alt="image" src="https://github.com/user-attachments/assets/7bb6d6d4-0aa4-45e4-9250-a93ff9fc5c08" />
+<img width="1758" height="276" alt="image" src="https://github.com/user-attachments/assets/526bfd8c-d488-49f9-aad9-9ffacf6852f1" />
+
 ---
 
 ### Gold — Star Schema & Query Optimisation
