@@ -239,13 +239,15 @@ The pipeline is implemented as a **Databricks Delta Live Tables** pipeline spann
 
 The Bronze layer uses **Databricks Auto Loader** in file notification mode, consuming SQS events to discover new S3 objects. Data lands in Bronze as-is — raw, unmodified, with no type casting or business logic applied.
 
-The only additions are pipeline metadata columns (`_ingested_at`, `_source_file`) for **end-to-end lineage tracking**. Each Olist entity lands in its own Bronze Delta table: `orders`, `order_items`, `customers`, `products`, `payments`, `reviews`, `sellers`, and `geolocation`.
+The only additions are pipeline metadata columns (`_ingested_at`, `_source_file`) for **end-to-end lineage tracking**. Each Olist entity lands in its own Bronze Delta table: `orders`, `order_items`, `customers`, `products`, `payments`, `reviews`, `sellers`, and `product_category_name_translation`.
 
 **Auto Loader checkpointing** is the foundation of the pipeline's reliability. A checkpoint directory persists the offset of every file Auto Loader has processed:
 
 - If the cluster is terminated mid-run, the next execution **resumes from the last committed offset** — no files are skipped, none are re-processed
 - SQS at-least-once delivery is **handled transparently** — duplicate notifications for the same S3 file are silently skipped by the checkpoint
 - **Schema changes** in upstream Olist exports are tracked in the checkpoint's schema history and automatically merged into the Bronze table, enabling schema evolution without pipeline downtime or manual intervention
+
+**Bronze Examples:**
 
 <img width="1128" height="430" alt="image" src="https://github.com/user-attachments/assets/b13ac2ec-79d8-4e02-9f27-75f4068c8e18" />
 <img width="1125" height="398" alt="image" src="https://github.com/user-attachments/assets/894021bc-8d99-4639-8999-3e9dbde58d24" />
@@ -276,6 +278,8 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 
 **CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, **regardless of duplicate SQS notifications or out-of-order event delivery**. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
 
+**Silver Examples:**
+
 <img width="1126" height="442" alt="image" src="https://github.com/user-attachments/assets/262fa5bb-d93a-4722-ba1d-f93a80733ce6" />
 <img width="1128" height="394" alt="image" src="https://github.com/user-attachments/assets/c4be2962-70c2-4e98-b43e-4d16ff077bc4" />
 
@@ -287,7 +291,7 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 
 Gold is the analytics-serving layer, modelled as a **star schema** with clear separation of fact and dimension tables:
 
-All changed in silver are propogated downstream to gold, and transformed to the star schema for analytics
+All changed in Silver are **propogated downstream** to gold, and transformed to the star schema for analytics.
 
 **Fact Tables** — transactional measures at event grain:
 
