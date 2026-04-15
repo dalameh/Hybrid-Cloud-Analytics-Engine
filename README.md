@@ -245,7 +245,7 @@ The only additions are pipeline metadata columns (`_ingested_at`, `_source_file`
 - SQS at-least-once delivery is **handled transparently** — duplicate notifications for the same S3 file are silently skipped by the checkpoint
 - **Schema changes** in upstream Olist exports are tracked in the checkpoint's schema history and automatically merged into the Bronze table, enabling schema evolution without pipeline downtime or manual intervention
 
-<img width="1810" height="310" alt="image" src="https://github.com/user-attachments/assets/4e552453-03dd-4a15-a14d-9b53bdd88ecd" />
+<img width="1862" height="318" alt="image" src="https://github.com/user-attachments/assets/7bb6d6d4-0aa4-45e4-9250-a93ff9fc5c08" />
 
 ---
 
@@ -271,7 +271,6 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 
 **CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, regardless of duplicate SQS notifications or out-of-order event delivery. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
 
-<img width="1862" height="318" alt="image" src="https://github.com/user-attachments/assets/7bb6d6d4-0aa4-45e4-9250-a93ff9fc5c08" />
 <img width="1758" height="276" alt="image" src="https://github.com/user-attachments/assets/526bfd8c-d488-49f9-aad9-9ffacf6852f1" />
 
 ---
