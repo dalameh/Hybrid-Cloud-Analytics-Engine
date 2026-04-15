@@ -131,7 +131,7 @@ All AWS infrastructure is provisioned as code using the **AWS CDK**, ensuring th
 The S3 bucket `olist-ecommerce-landing-zone-useast1` is the raw system of record, providing the landing zone for the full load and all on-going replications.
 
 - **Hive-style partitioning** (`dataset/year=/month=/day=`) enables efficient partition pruning downstream without full bucket scans
-- **Event notifications** enabled to send all `s3:ObjectCreated:*`, `s3:ObjectRemoved:*`, and `s3:LifecycleExpiration:*`events to sns topic `olist-landing-topic` (imperative to have all three events enabled to ensure the file events service within Databricks tracks the full lifecycle of files in its cache)
+- **Event notifications** enabled to send all `s3:ObjectCreated:*`, `s3:ObjectRemoved:*`, and `s3:LifecycleExpiration:*`events to sns topic `olist-landing-topic` (imperative to have all three events enabled to ensure the file events service within Databricks can track the full lifecycle of files in its cache)
 - **Lifecycle policy** automatically transitions objects to S3 Infrequent Access after 30 days, Glacier Flexible after 90, and expires them after 365 days — keeping storage costs bounded as data accumulates
 - **Versioning** is enabled to protect against accidental overwrites during replication
 - **SSE-S3 encryption** (AES-256) is automatically applied to guarantee server-side encryption for all objects at rest
