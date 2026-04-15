@@ -246,7 +246,8 @@ The only additions are pipeline metadata columns (`_ingested_at`, `_source_file`
 - SQS at-least-once delivery is **handled transparently** — duplicate notifications for the same S3 file are silently skipped by the checkpoint
 - **Schema changes** in upstream Olist exports are tracked in the checkpoint's schema history and automatically merged into the Bronze table, enabling schema evolution without pipeline downtime or manual intervention
 
-<img width="1862" height="318" alt="image" src="https://github.com/user-attachments/assets/7bb6d6d4-0aa4-45e4-9250-a93ff9fc5c08" />
+<img width="1128" height="430" alt="image" src="https://github.com/user-attachments/assets/b13ac2ec-79d8-4e02-9f27-75f4068c8e18" />
+<img width="1125" height="398" alt="image" src="https://github.com/user-attachments/assets/894021bc-8d99-4639-8999-3e9dbde58d24" />
 
 ---
 
@@ -272,7 +273,8 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 
 **CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, regardless of duplicate SQS notifications or out-of-order event delivery. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
 
-<img width="1191" height="425" alt="image" src="https://github.com/user-attachments/assets/00c90825-2133-42a7-ad39-33a24eb1c7f0" />
+<img width="1126" height="442" alt="image" src="https://github.com/user-attachments/assets/262fa5bb-d93a-4722-ba1d-f93a80733ce6" />
+<img width="1128" height="394" alt="image" src="https://github.com/user-attachments/assets/c4be2962-70c2-4e98-b43e-4d16ff077bc4" />
 
 ---
 
@@ -281,14 +283,15 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 > `analytics/transformations/gold.py`
 
 Gold is the analytics-serving layer, modelled as a **star schema** with clear separation of fact and dimension tables:
+Facts are the quantitative metrics you measure (the "numbers"), while Dimensions are the qualitative attributes you use to filter and group those numbers (the "context").
 
 **Fact Tables** — transactional measures at event grain:
 
 | Table | Measures |
 |:---|:---|
 | `fact_order_items` | Revenue, quantities, delivery times |
-| `fact_payments` | Payment values, installments |
-| `fact_reviews` | Review scores, response times |
+| `fact_payments`    | Payment values, installments |
+| `fact_reviews`     | Review scores, response times |
 
 **Dimension Tables** — descriptive attributes for Power BI slicing:
 
@@ -296,7 +299,7 @@ Gold is the analytics-serving layer, modelled as a **star schema** with clear se
 
 **Query optimisation strategy:**
 
-- **Partition pruning** on high-frequency access columns such as `customer_state` — Power BI queries filtering by geography scan only the relevant data folders
+- **Partition pruning** on high-frequency access columns (i.e. `customer_state` for dim_customers, `purchase_date` for fact_order_items, and so on) — Power BI queries filtering by geography scan only the relevant data folders
 - **Liquid Clustering** on high-selectivity columns — unlike traditional Z-Ordering, Liquid Clustering dynamically adjusts data layout over time, co-locating related values for sub-second response times as the dataset evolves
 
 <img width="1690" height="769" alt="image" src="https://github.com/user-attachments/assets/46bd26fc-13bf-4a45-ad8b-75a105ff6841" />
