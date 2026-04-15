@@ -153,7 +153,7 @@ The bucket `olist-ecommerce-prod-useast1-lakehouse` serves as the **Unity Catalo
 
 Every `s3:ObjectCreated:*`, `s3:ObjectRemoved:*`, and `s3:LifecycleExpiration:*` event fires a notification to the `olist-landing-topic` SNS topic. SNS decouples the ingestion agent from all downstream compute — the CDC agent has no knowledge of Databricks, SQS, or anything downstream. This also allows new consumers (alerting, archival, compliance auditing) to subscribe to the topic without modifying a single line of ingestion code.
 
-<img width="1609" height="517" alt="image" src="https://github.com/user-attachments/assets/8d3b1a1f-25eb-4a94-8a8e-c3ec7465930f" />
+<img width="1804" height="703" alt="Screenshot 2026-04-15 103144" src="https://github.com/user-attachments/assets/27ab4345-19af-416f-984d-a2db15565452" />
 
 ### SQS — Durable Work Buffer
 
