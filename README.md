@@ -386,7 +386,7 @@ After each successful pipeline run, the **Power BI REST API** is called using a 
 | **SQS PrivateLink** | Route SQS traffic over a VPC private endpoint to eliminate public internet traversal |
 | **DLQ → Quarantine Bridge** | Automatically promote DLQ messages into the Silver quarantine tables for unified auditability and root-cause analysis alongside DQ failures |
 | **Slack Notification** | Utilize native Databricks alerts to alert a Slack Channel of job start and job success/failure |
-| Unity Catalog Governance | Implement fine-grained access control via Unity Catalog, defining specific permissions for data consumers and ensuring secure, role-based access to the Medallion layers. |
+| **Unity Catalog Access Control** | Implement fine-grained access control via Unity Catalog, defining specific permissions for data consumers and ensuring secure, role-based access to the Medallion layers. |
 ---
 
 <div align="center">
