@@ -71,54 +71,7 @@ The data flows through a governed **Medallion architecture within Unity Catalog*
 
 ## 🏗 Architecture
 
-```
-┌─────────────────────────┐
-│   On-Prem ERP (Olist)   │  Python CDC agent · AR_H_COMMIT_TIMESTAMP + OP-coded events
-│   Relational Database   │  Continuous incremental replication
-└───────────┬─────────────┘
-            │
-            │  PUT Object (Parquet · Hive-partitioned Y/M/D)
-            ▼
-┌─────────────────────────┐
-│     AWS S3              │  CDK-provisioned landing zone
-│     Landing Zone        │  Lifecycle: Infrequent Access (30d)
-└───────────┬─────────────┘
-            │
-            │  s3:ObjectCreated event notification
-            ▼
-┌─────────────────────────┐
-│     AWS SNS             │  erp-pipeline-events topic
-│     Event Fan-out       │  Decouples ingestion from compute
-└───────────┬─────────────┘
-            │
-            │  Publish to subscriber
-            ▼
-┌─────────────────────────┐
-│     AWS SQS             │  erp-etl-queue · DLQ: erp-etl-dlq
-│     Work Buffer         │  Auto Loader file notification source
-└───────────┬─────────────┘
-            │
-            │  Databricks Auto Loader consumes SQS events
-            ▼
-┌──────────────────────────────────────────────────────────┐
-│                Databricks Delta Live Tables              │
-│                                                          │
-│   [Bronze]          [Silver]              [Gold]         │
-│   Auto Loader   →   DQ Expectations   →  Star Schema     │
-│   Raw Delta         MERGE + OP Flags    Liquid Clustering│
-│   Checkpointed      Schema enforced      Power BI ready  │
-│                                                          │
-│              DLT State · Auto Loader Checkpoint          │
-│              Idempotent · Crash-safe · Schema-evolving   │
-└──────────────────────┬───────────────────────────────────┘
-                       │
-                       │  Databricks Workflow · daily @ midnight
-                       ▼
-┌─────────────────────────┐
-│     Power BI            │  REST API semantic model refresh
-│     Executive Dashboard │  Auto-updated after every successful run
-└─────────────────────────┘
-```
+<img width="1142" height="501" alt="image" src="https://github.com/user-attachments/assets/902b9ad1-6594-475e-b363-6f9ae60c42fb" />
 
 ---
 
