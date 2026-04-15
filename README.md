@@ -283,7 +283,8 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 > `analytics/transformations/gold.py`
 
 Gold is the analytics-serving layer, modelled as a **star schema** with clear separation of fact and dimension tables:
-Facts are the quantitative metrics you measure (the "numbers"), while Dimensions are the qualitative attributes you use to filter and group those numbers (the "context").
+
+All changed in silver are propogated downstream to gold, and transformed to the star schema for analytics
 
 **Fact Tables** — transactional measures at event grain:
 
