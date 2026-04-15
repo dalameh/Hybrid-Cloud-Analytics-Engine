@@ -164,6 +164,7 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 
 <img width="1650" height="360" alt="image" src="https://github.com/user-attachments/assets/9d11bb26-8d3d-46be-8127-601a79bfcf5a" />
 <img width="1804" height="703" alt="image" src="https://github.com/user-attachments/assets/cef2464d-e1ab-4ebb-a994-ce31bb7cf0d7" />
+<img width="875" height="340" alt="image" src="https://github.com/user-attachments/assets/b47bff3d-d987-4956-b14b-2676738513e5" />
 
 
 ---
