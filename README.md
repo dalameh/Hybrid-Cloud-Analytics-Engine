@@ -204,7 +204,7 @@ I implemented **Unity Catalog** to provide a centralized governance layer for th
 ### Infrastructure Setup
 
 I established **External Locations** to securely map S3 storage to Databricks compute. 
-* **`olist_raw_landing_zone`**: Ingestion point for raw CDC changes.
+* **`olist_raw_landing_zone`**: Ingestion point for raw CDC changes. Enables File Events with provided `olist-landing-queue` url.
 * **`olist_datalakehouse_root`**: Storage backbone for all processed data.
 
 ### Medallion Catalog Architecture
@@ -267,11 +267,13 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 
 **Quarantine Tables:** Data that fails pre-defined DQ checks is diverted into dedicated Quarantine Tables within Unity Catalog:
 
-- **Auditability** — every quarantined record is persisted with a `rejection_reason` metadata column (e.g., `Negative Price`, `Null Order_ID`), allowing for rapid root-cause analysis without stalling the main pipeline
-- **Non-Blocking Logic** — by shunting "poison pill" records into a side-table rather than failing the entire job, the pipeline maintains high availability for the 99% of data that is healthy
+- **Auditability** — every quarantined record is persisted with a `_quarantine_reason` metadata column (e.g., `Negative Price`, `Null PK`), allowing for rapid root-cause analysis without stalling the main pipeline
+- **Non-Blocking Logic** — by shunting "poison pill" records into a side-table rather than failing the entire job, the pipeline maintains high availability for the 99% of data that is healthy and ensures no misleading analytics to end-users.
 - **Continuous Improvement** — these tables serve as a feedback loop for the on-premise ERP team to identify upstream data entry errors or legacy system bugs
 
-**CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, regardless of duplicate SQS notifications or out-of-order event delivery. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
+<img width="1216" height="361" alt="image" src="https://github.com/user-attachments/assets/71aa2ec5-d82d-4a30-8436-308b16c96bc6" />
+
+**CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, **regardless of duplicate SQS notifications or out-of-order event delivery**. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
 
 <img width="1126" height="442" alt="image" src="https://github.com/user-attachments/assets/262fa5bb-d93a-4722-ba1d-f93a80733ce6" />
 <img width="1128" height="394" alt="image" src="https://github.com/user-attachments/assets/c4be2962-70c2-4e98-b43e-4d16ff077bc4" />
