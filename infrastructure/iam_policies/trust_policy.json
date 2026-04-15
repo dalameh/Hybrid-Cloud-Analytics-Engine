@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowDatabricksAssumeRole",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::${DATABRICKS_PLATFORM_ACCOUNT_ID}:role/${UNITY_CATALOG_MASTER_ROLE}",
+                    "arn:aws:iam::${USER_AWS_ACCOUNT_ID}:role/${DATABRICKS_INGESTION_ROLE}"
+                ]
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+                "StringEquals": {
+                    "sts:ExternalId": "${DATABRICKS_EXTERNAL_ID}"
+                }
+            }
+        }
+    ]
+}

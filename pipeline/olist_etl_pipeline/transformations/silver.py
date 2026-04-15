@@ -136,17 +136,17 @@ def collect_rejected(
     fallback_df: DataFrame,
 ) -> DataFrame:
     """
-    Union all rejected buckets into a single DataFrame with a quarantine_reason
+    Union all rejected buckets into a single DataFrame with a _quarantine_reason
     column. Empty buckets are included in the union — Spark optimises away
     empty partitions at execution time, so no eager .count() is needed.
     """
     tagged = [
-        df.withColumn("quarantine_reason", F.lit(reason))
+        df.withColumn("_quarantine_reason", F.lit(reason))
         for df, reason in rejected_buckets
     ]
     if not tagged:
         return fallback_df.limit(0).withColumn(
-            "quarantine_reason", F.lit(None).cast(StringType())
+            "_quarantine_reason", F.lit(None).cast(StringType())
         )
     result = tagged[0]
     for extra in tagged[1:]:
@@ -186,7 +186,6 @@ def _base_customers(df: DataFrame) -> DataFrame:
 
 def _base_sellers(df: DataFrame) -> DataFrame:
     return trim_all_strings(df)
-
 
 def _base_products(df: DataFrame) -> DataFrame:
     _PRODUCT_CASTS = {
@@ -317,7 +316,7 @@ def _quarantine_customers(df: DataFrame) -> DataFrame:
     # clean, _   = _rules_customers(df)
     clean, buckets = _rules_customers(df)
     _, null_pk = split_on_null_pk(clean, ["customer_id"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     result     = collect_rejected(buckets, df)
     result     = result.unionByName(null_pk, allowMissingColumns=True)
     return add_quarantine_metadata(result, "customers")
@@ -359,7 +358,7 @@ def _quarantine_sellers(df: DataFrame) -> DataFrame:
     # clean, _   = _rules_sellers(df)
     clean, buckets = _rules_sellers(df)
     _, null_pk = split_on_null_pk(clean, ["seller_id"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     result     = collect_rejected(buckets, df)
     result     = result.unionByName(null_pk, allowMissingColumns=True)
     return add_quarantine_metadata(result, "sellers")
@@ -406,7 +405,7 @@ def _quarantine_products(df: DataFrame) -> DataFrame:
     # clean, _   = _rules_products(df)
     clean, buckets = _rules_products(df)
     _, null_pk = split_on_null_pk(clean, ["product_id"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     result     = collect_rejected(buckets, df)
     result     = result.unionByName(null_pk, allowMissingColumns=True)
     return add_quarantine_metadata(result, "products")
@@ -439,7 +438,7 @@ def _quarantine_product_category_name_translation(df: DataFrame) -> DataFrame:
         df = df.filter(F.col(CDC_OP_COL) != "D")
 
     _, null_pk = split_on_null_pk(df, ["product_category_name"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     return add_quarantine_metadata(null_pk, "product_category_name_translation")
 
 
@@ -482,7 +481,7 @@ def _quarantine_orders(df: DataFrame) -> DataFrame:
     # clean, _   = _rules_orders(df)
     clean, buckets = _rules_orders(df)
     _, null_pk = split_on_null_pk(clean, ["order_id"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     result     = collect_rejected(buckets, df)
     result     = result.unionByName(null_pk, allowMissingColumns=True)
     return add_quarantine_metadata(result, "orders")
@@ -529,7 +528,7 @@ def _quarantine_order_items(df: DataFrame) -> DataFrame:
     # clean, _   = _rules_order_items(df)
     clean, buckets = _rules_order_items(df)
     _, null_pk = split_on_null_pk(clean, ["order_id", "order_item_id"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     result     = collect_rejected(buckets, df)
     result     = result.unionByName(null_pk, allowMissingColumns=True)
     return add_quarantine_metadata(result, "order_items")
@@ -574,7 +573,7 @@ def _quarantine_payments(df: DataFrame) -> DataFrame:
     # clean, _   = _rules_payments(df)
     clean, buckets = _rules_payments(df)
     _, null_pk = split_on_null_pk(clean, ["order_id", "payment_sequential"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     result     = collect_rejected(buckets, df)
     result     = result.unionByName(null_pk, allowMissingColumns=True)
     return add_quarantine_metadata(result, "payments")
@@ -617,7 +616,7 @@ def _quarantine_reviews(df: DataFrame) -> DataFrame:
     # clean, _   = _rules_reviews(df)
     clean, buckets = _rules_reviews(df)
     _, null_pk = split_on_null_pk(clean, ["review_id", "order_id"])
-    null_pk    = null_pk.withColumn("quarantine_reason", F.lit("null_pk"))
+    null_pk    = null_pk.withColumn("_quarantine_reason", F.lit("null_pk"))
     result     = collect_rejected(buckets, df)
     result     = result.unionByName(null_pk, allowMissingColumns=True)
     return add_quarantine_metadata(result, "reviews")

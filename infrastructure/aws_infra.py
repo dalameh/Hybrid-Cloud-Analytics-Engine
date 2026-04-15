@@ -91,8 +91,10 @@ class OlistAWSInfrastructureStack(cdk.Stack):
 
 
         # 7. S3 Notification -> SNS
-        self.datalake_bucket.add_event_notification(
+        self.datalake_bucket.add_event_notification( # all three are incredibly important to allow for managed file events
             s3.EventType.OBJECT_CREATED,
+            s3.EventType.OBJECT_REMOVED,
+            s3.EventType.LIFECYCLE_EXPIRATION,
             s3n.SnsDestination(self.landing_topic),
             s3.NotificationKeyFilter(prefix="landing/"),
         )

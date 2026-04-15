@@ -1,0 +1,19 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowS3ToPublishToSNS",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Action": "sns:Publish",
+      "Resource": "arn:aws:sns:${REGION}:${AWS_ACCOUNT_ID}:${SNS_TOPIC_NAME}",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:s3:::${LANDING_ZONE_BUCKET}"
+        }
+      }
+    }
+  ]
+}

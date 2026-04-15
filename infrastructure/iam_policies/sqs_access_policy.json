@@ -1,0 +1,35 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowSNSSend",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "sns.amazonaws.com"
+      },
+      "Action": "sqs:SendMessage",
+      "Resource": "arn:aws:sqs:${REGION}:${AWS_ACCOUNT_ID}:${SQS_QUEUE_NAME}",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "arn:aws:sns:${REGION}:${AWS_ACCOUNT_ID}:${SNS_TOPIC_NAME}"
+        }
+      }
+    },
+    {
+      "Sid": "AllowDatabricksReceive",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${DATABRICKS_INGESTION_ROLE}",
+          "arn:aws:iam::${AWS_ACCOUNT_ID}:root"
+        ]
+      },
+      "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
+      ],
+      "Resource": "arn:aws:sqs:${REGION}:${AWS_ACCOUNT_ID}:${SQS_QUEUE_NAME}"
+    }
+  ]
+}

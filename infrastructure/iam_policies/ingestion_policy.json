@@ -1,0 +1,91 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DataLakeStorageAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetLifecycleConfiguration",
+        "s3:PutLifecycleConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${DATA_LAKE_BUCKET}",
+        "arn:aws:s3:::${DATA_LAKE_BUCKET}/*",
+        "arn:aws:s3:::${LANDING_ZONE_BUCKET}",
+        "arn:aws:s3:::${LANDING_ZONE_BUCKET}/*"
+      ]
+    },
+    {
+      "Sid": "CrossAccountRoleAssumption",
+      "Effect": "Allow",
+      "Action": [
+        "sts:AssumeRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${DATABRICKS_INGESTION_ROLE}"
+      ]
+    },
+    {
+      "Sid": "ManagedFileEventsSetup",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketNotification",
+        "s3:PutBucketNotification",
+        "sns:ListSubscriptionsByTopic",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:CreateTopic",
+        "sns:TagResource",
+        "sns:Publish",
+        "sns:Subscribe",
+        "sqs:CreateQueue",
+        "sqs:DeleteMessage",
+        "sqs:ReceiveMessage",
+        "sqs:SendMessage",
+        "sqs:GetQueueUrl",
+        "sqs:GetQueueAttributes",
+        "sqs:SetQueueAttributes",
+        "sqs:TagQueue",
+        "sqs:ChangeMessageVisibility",
+        "sqs:PurgeQueue"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${DATA_LAKE_BUCKET}",
+        "arn:aws:s3:::${LANDING_ZONE_BUCKET}",
+        "arn:aws:sqs:${REGION}:${AWS_ACCOUNT_ID}:olist-*",
+        "arn:aws:sns:${REGION}:${AWS_ACCOUNT_ID}:olist-*"
+      ]
+    },
+    {
+      "Sid": "ManagedFileEventsDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:ListQueues",
+        "sqs:ListQueueTags",
+        "sns:ListTopics"
+      ],
+      "Resource": [
+        "arn:aws:sqs:${REGION}:${AWS_ACCOUNT_ID}:olist-*",
+        "arn:aws:sns:${REGION}:${AWS_ACCOUNT_ID}:olist-*"
+      ]
+    },
+    {
+      "Sid": "ManagedFileEventsTeardown",
+      "Effect": "Allow",
+      "Action": [
+        "sns:Unsubscribe",
+        "sns:DeleteTopic",
+        "sqs:DeleteQueue"
+      ],
+      "Resource": [
+        "arn:aws:sqs:${REGION}:${AWS_ACCOUNT_ID}:olist-*",
+        "arn:aws:sns:${REGION}:${AWS_ACCOUNT_ID}:olist-*"
+      ]
+    }
+  ]
+}
