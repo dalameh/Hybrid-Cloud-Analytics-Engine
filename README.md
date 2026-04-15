@@ -163,7 +163,7 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 - **Dead-Letter Queue (DLQ)** with `maxReceiveCount: 3` isolates "poison pill" files that fail processing, preventing malformed data from stalling the entire batch
 - **300-second visibility timeout** ensures the Databricks job has sufficient overhead to commit the batch before any message re-delivery occurs, maintaining strict processing integrity during compute transitions
 
-<img width="1650" height="360" alt="image" src="https://github.com/user-attachments/assets/9d11bb26-8d3d-46be-8127-601a79bfcf5a" />
+<img width="828" height="181" alt="image" src="https://github.com/user-attachments/assets/800eed73-1005-4b77-bcd0-83edc11fbed6" />
 <img width="1804" height="703" alt="image" src="https://github.com/user-attachments/assets/cef2464d-e1ab-4ebb-a994-ce31bb7cf0d7" />
 <img width="875" height="340" alt="image" src="https://github.com/user-attachments/assets/b47bff3d-d987-4956-b14b-2676738513e5" />
 
