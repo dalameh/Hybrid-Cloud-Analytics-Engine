@@ -307,7 +307,7 @@ All changed in Silver are **propogated downstream** to gold, and transformed to 
 
 **Query optimisation strategy:**
 
-- **Partition pruning** on high-frequency access columns (i.e. `customer_state` for dim_customers, `purchase_date` for fact_order_items, and so on) — Power BI queries filtering by geography scan only the relevant data folders
+- **Partition pruning** on high-frequency access columns (i.e. `customer_state` for dim_customers, `purchase_date` for fact_order_items, and so on) (e.g,: Power BI queries filtering by geography scan only the relevant data folders)
 - **Liquid Clustering** on high-selectivity columns — unlike traditional Z-Ordering, Liquid Clustering dynamically adjusts data layout over time, co-locating related values for sub-second response times as the dataset evolves
 
 <img width="1690" height="769" alt="image" src="https://github.com/user-attachments/assets/46bd26fc-13bf-4a45-ad8b-75a105ff6841" />
