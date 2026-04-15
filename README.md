@@ -285,7 +285,7 @@ This programmatic approach allows for complex, multi-column logic and cross-tabl
 
 ---
 
-### Gold — Star Schema & Query Optimisation
+### Gold — Star Schema & Query Optimization
 
 > `analytics/transformations/gold.py`
 
