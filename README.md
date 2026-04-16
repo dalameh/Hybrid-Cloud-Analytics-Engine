@@ -71,7 +71,7 @@ The data flows through a governed **Medallion architecture within Unity Catalog*
 
 ## 🏗 Architecture
 
-<img width="4342" height="1950" alt="Blank diagram" src="https://github.com/user-attachments/assets/e0c7fd13-7ea1-4452-9133-5f44ff199fb9" />
+<img width="4342" height="1950" alt="Blank diagram (1)" src="https://github.com/user-attachments/assets/e58da04d-fd6c-484c-8397-36eb37ec6514" />
 
 Created using **LucidChart**: https://lucid.app/lucidchart/516afc94-83d1-405c-9821-354bd8b1dce4/edit?viewport_loc=-1970%2C-1378%2C3167%2C1163%2C0_0&invitationId=inv_8c958419-be0f-4f2a-982f-c118ec693dac
 
