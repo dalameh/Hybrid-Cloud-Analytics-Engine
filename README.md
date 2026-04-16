@@ -274,9 +274,10 @@ All changed in Silver are **propogated downstream** to gold, and transformed to 
 
 This layer additionally adds a metadata column (`_gold_processed_at`) for **lineage tracking**.
 
-**Star Schema (from Power BI Model View):**
+**Star Schema Visual (from Power BI Model View):**
 
-<img width="1702" height="433" alt="image" src="https://github.com/user-attachments/assets/69a95435-f3ca-4299-beea-f3730e9a6f19" />
+<img width="1770" height="663" alt="image" src="https://github.com/user-attachments/assets/63daccf3-a67d-414c-b419-70d67da0fbf1" />
+
 
 ---
 
