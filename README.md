@@ -195,6 +195,8 @@ The Bronze layer uses **Databricks Auto Loader** in file notification mode, cons
 
 The only additions are pipeline metadata columns (`_ingested_at`, `_source_file`) for **end-to-end lineage tracking**. Each Olist entity lands in its own Bronze Delta table: `orders`, `order_items`, `customers`, `products`, `payments`, `reviews`, `sellers`, and `product_category_name_translation`.
 
+By implementing **Hive-style partitioning** at the Bronze layer, the architecture enforces physical data separation by `year, month, and day`. This ensures that downstream Silver and Gold transformations leverage **Partition Pruning**, allowing the Spark engine to skip irrelevant data directories at the metadata level and drastically reducing I/O overhead during high-volume incremental loads."
+
 **Auto Loader checkpointing** is the foundation of the pipeline's reliability. A checkpoint directory persists the offset of every file Auto Loader has processed:
 
 - If the cluster is terminated mid-run, the next execution **resumes from the last committed offset** — no files are skipped, none are re-processed
@@ -220,7 +222,7 @@ Silver reads from Bronze and serves as the pipeline's enforcement and reconcilia
 | **Business Logic** | Domain-specific rules and reference integrity checks |
 | **Analytic Readiness** | Metric-validity and distribution checks |
 
-This programmatic approach allows for complex, multi-column logic and cross-table validation that exceeds standard expectation syntax.
+This programmatic approach allows for complex, multi-column logic and cross-table validation that **exceeds standard expectation syntax**.
 
 This layer additionally adds a metadata column (`_silver_processed_at`) for **lineage tracking**.
 
@@ -233,6 +235,8 @@ This layer additionally adds a metadata column (`_silver_processed_at`) for **li
 <img width="1216" height="361" alt="image" src="https://github.com/user-attachments/assets/71aa2ec5-d82d-4a30-8436-308b16c96bc6" />
 
 **CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, **regardless of duplicate SQS notifications or out-of-order event delivery**. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
+
+Within the Silver layer, I implemented strategic partitioning on **high-cardinality business dimensions** to align the physical data layout with downstream query patterns. This enables the engine to execute high-efficiency **Predicate Pushdown**, allowing Spark to leverage file-level metadata (min/max stats) to skip irrelevant data blocks within the Delta files, thereby **minimizing memory consumption and network latency during Gold-layer aggregations**.
 
 **Silver Examples:**
 
@@ -263,7 +267,7 @@ All changed in Silver are **propogated downstream** to gold, and transformed to 
 
 **Query optimisation strategy:**
 
-- **Partition pruning** on high-frequency access columns (i.e. `customer_state` for dim_customers, `purchase_date` for fact_order_items, and so on) (e.g,: Power BI queries filtering by geography scan only the relevant data folders)
+- **Partition pruning** on high-frequency access columns enables the engine to skip irrelevant directories at the metadata level, ensuring that downstream BI tools only scan the folders necessary for a specific query. By aligning the physical storage of the Gold layer with primary reporting dimensions—such as geography or temporal keys—the architecture eliminates redundant I/O, **drastically reducing latency for Power BI dashboards and executive-level analytics**.
 - **Liquid Clustering** on high-selectivity columns — unlike traditional Z-Ordering, Liquid Clustering dynamically adjusts data layout over time, co-locating related values for sub-second response times as the dataset evolves
 
 This layer additionally adds a metadata column (`_gold_processed_at`) for **lineage tracking**.
