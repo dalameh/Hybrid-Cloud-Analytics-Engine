@@ -32,7 +32,7 @@
   - [Bronze — Raw Ingestion & Checkpointing](#bronze--raw-ingestion--checkpointing)
   - [Silver — Data Quality & CDC Upserts](#silver--data-quality--cdc-upserts)
   - [Gold — Star Schema & Query Optimisation](#gold--star-schema--query-optimisation)
-  - [Pipeline Graph](#pipeline--graph)
+  - [ETL Pipeline Graph](#pipeline-graph)
 - [Idempotency & Consistency Guarantees](#-idempotency--consistency-guarantees)
 - [Orchestration — Databricks Lakeflow Jobs](#-orchestration--databricks-lakeflow-jobs)
 - [Databricks Dashboard](#-databricks-dashboard)
