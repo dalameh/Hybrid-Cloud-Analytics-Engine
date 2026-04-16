@@ -276,7 +276,7 @@ This layer additionally adds a metadata column (`_gold_processed_at`) for **line
 
 **Star Schema (from Power BI Model View):**
 
-<img width="608" height="333" alt="image" src="https://github.com/user-attachments/assets/69a95435-f3ca-4299-beea-f3730e9a6f19" />
+<img width="1702" height="433" alt="image" src="https://github.com/user-attachments/assets/69a95435-f3ca-4299-beea-f3730e9a6f19" />
 
 ---
 
