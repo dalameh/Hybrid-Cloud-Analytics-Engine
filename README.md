@@ -117,6 +117,7 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 - **O(1) file discovery**: By utilizing Auto Loader with SQS File Notifications, the architecture bypasses the latency of traditional S3 directory listings — an $O(N)$ operation that becomes prohibitively expensive as object counts scale. The moment a file lands in S3, a notification is pushed through the SNS→SQS chain, allowing Databricks to pinpoint and ingest new data without performing a full bucket scan
 - **Dead-Letter Queue (DLQ)** with `maxReceiveCount: 3` isolates "poison pill" files that fail processing, preventing malformed data from stalling the entire batch
 - **300-second visibility timeout** ensures the Databricks job has sufficient overhead to commit the batch before any message re-delivery occurs, maintaining strict processing integrity during compute transitions
+- **4-day retention period** ensures data persistence and recoverability during extended compute transitions, maintaining strict processing integrity."
 
 <img width="1804" height="703" alt="Screenshot 2026-04-15 102201" src="https://github.com/user-attachments/assets/f795ee35-75de-4823-a057-847f110f2cf7" />
 <img width="1804" height="703" alt="image" src="https://github.com/user-attachments/assets/cef2464d-e1ab-4ebb-a994-ce31bb7cf0d7" />
