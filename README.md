@@ -224,6 +224,8 @@ Silver reads from Bronze and serves as the pipeline's enforcement and reconcilia
 
 This programmatic approach allows for complex, multi-column logic and cross-table validation that **exceeds standard expectation syntax**.
 
+**CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, **regardless of duplicate SQS notifications or out-of-order event delivery**. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
+
 This layer additionally adds a metadata column (`_silver_processed_at`) for **lineage tracking**.
 
 **Quarantine Tables:** Data that fails pre-defined DQ checks is diverted into dedicated Quarantine Tables within Unity Catalog:
@@ -232,9 +234,7 @@ This layer additionally adds a metadata column (`_silver_processed_at`) for **li
 - **Non-Blocking Logic** — by shunting "poison pill" records into a side-table rather than failing the entire job, the pipeline maintains high availability for the 99% of data that is healthy and ensures no misleading analytics to end-users.
 - **Continuous Improvement** — these tables serve as a feedback loop for the on-premise ERP team to identify upstream data entry errors or legacy system bugs
 
-<img width="1216" height="361" alt="image" src="https://github.com/user-attachments/assets/71aa2ec5-d82d-4a30-8436-308b16c96bc6" />
-
-**CDC reconciliation:** Beyond quality enforcement, Silver applies the CDC OP Flags against the `AR_H_COMMIT_TIMESTAMP` ordering to maintain system state. Inserts and updates are merged into Silver tables using Delta's `MERGE` semantics, keyed on business identifiers such as `order_id` or `customer_id`. Deletes are hard-deleted to ensure Silver and Gold layers remain sources of truth, **regardless of duplicate SQS notifications or out-of-order event delivery**. Comprehensive type casting, timestamp normalization, and critical entity joins — linking orders, customers, and products — are also finalized at this stage.
+<img width="1321" height="327" alt="image" src="https://github.com/user-attachments/assets/8d7aeea6-bc34-49ee-abb3-70fd62ec3ed3" />
 
 Within the Silver layer, I implemented strategic partitioning on **high-cardinality business dimensions** to align the physical data layout with downstream query patterns. This enables the engine to execute high-efficiency **Predicate Pushdown**, allowing Spark to leverage file-level metadata (min/max stats) to skip irrelevant data blocks within the Delta files, thereby **minimizing memory consumption and network latency during Gold-layer aggregations**.
 
