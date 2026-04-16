@@ -274,6 +274,10 @@ All changed in Silver are **propogated downstream** to gold, and transformed to 
 
 This layer additionally adds a metadata column (`_gold_processed_at`) for **lineage tracking**.
 
+**Star Schema:**
+
+<img width="641" height="583" alt="image" src="https://github.com/user-attachments/assets/0a0d0d00-ab54-45a6-8e21-0241d7b858c8" />
+
 ---
 
 ### Pipeline Graph:
