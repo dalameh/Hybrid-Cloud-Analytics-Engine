@@ -81,7 +81,6 @@ Created using **LucidChart**: https://lucid.app/lucidchart/516afc94-83d1-405c-98
 
 ## 🎞️ Development Demo
 
-
 [Click here to watch the Hybrid Cloud Analytics Engine Demo](https://github.com/dalameh/Hybrid-Cloud-Analytics-Engine/releases/download/v1.0.0/Hybrid.Cloud.Analytics.Engine.Dev.Demo.mp4)
 
 ---
