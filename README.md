@@ -21,6 +21,7 @@
   - [The Challenge](#the-challenge-breaking-the-analytical-bottleneck)
   - [The Solution](#the-solution-an-event-driven-analytical-ecosystem)
 - [Architecture](#-architecture)
+- [Development Demo](#-development-demo)
 - [Infrastructure — AWS CDK](#️-infrastructure--aws-cdk-iac)
   - [S3 Landing Zone](#s3-landing-zone)
   - [S3 Data Lakehouse](#s3-data-lakehouse)
@@ -78,7 +79,7 @@ Created using **LucidChart**: https://lucid.app/lucidchart/516afc94-83d1-405c-98
 
 ---
 
-## 🏗 Dev. Demo:
+## 🎞️ Development Demo
 
 
 [Click here to watch the Hybrid Cloud Analytics Engine Demo](https://github.com/dalameh/Hybrid-Cloud-Analytics-Engine/releases/download/v1.0.0/Hybrid.Cloud.Analytics.Engine.Dev.Demo.mp4)
