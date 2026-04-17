@@ -328,7 +328,7 @@ After each successful pipeline run, the **Lakeflow Job** automatically refreshes
 
 After each successful pipeline run, the **Power BI REST API** is called using a Service Principal to trigger a full semantic model refresh. The dashboard connects to Gold Delta tables via the Databricks SQL connector and surfaces executive e-commerce metrics.
 
-<img width="1732" height="541" alt="image" src="https://github.com/user-attachments/assets/6a07508a-6b71-4728-a3b2-8f7ad620bc24" />
+<img width="1089" height="612" alt="image" src="https://github.com/user-attachments/assets/221b84e8-c76d-41cb-a421-7ccc4a0f6236" />
 
 ---
 
