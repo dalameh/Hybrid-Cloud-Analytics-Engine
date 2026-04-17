@@ -352,8 +352,8 @@ After each successful pipeline run, the **Power BI REST API** is called using a 
 | Improvement | Description |
 |:---|:---|
 | **Late Arrival Reconciliation** | To handle late-arriving data caused by potential network issues, upstream failures, or batch skipping, I should implement an **Inferred Member Pattern**. When a record references a missing foreign key—like an order_item missing a product_id — the pipeline writes a placeholder row in the dimension table. This preserves referential integrity and keeps the fact table grain intact, ensuring totals remain accurate instead of being silently dropped.This non-blocking approach marks placeholders as unresolved, allowing a secondary reconciliation job to back-fill attributes once the parent record eventually lands. This self-healing architecture prevents data loss from technical delays and ensures your analytics reflect the full truth, preventing under-reported metrics like customer counts.|
+| **SNS Topic Encyrption** | For high-security requirements, enable SNS SSE-KMS to protect data at rest; Configure a customer (CMK) or AWS-managed key, with key rotation policies, in AWS KMS |
 | **SQS Subscription Filter Policy** | Scope SQS delivery to Olist dataset prefixes only, preventing internal S3 operations from triggering the pipeline unnecessarily |
-| **SQS Topic Encyrption** | For high-security requirements, enable SNS SSE-KMS to protect data at rest; Configure a customer (CMK) or AWS-managed key, with key rotation policies, in AWS KMS |
 | **SQS PrivateLink** | Route SQS traffic over a VPC private endpoint to eliminate public internet traversal |
 | **DLQ → Quarantine Bridge** | Automatically promote DLQ messages into the Silver quarantine tables for unified auditability and root-cause analysis alongside DQ failures |
 | **Slack Notification** | Utilize native Databricks alerts to alert a Slack Channel of job start and job success/failure |
