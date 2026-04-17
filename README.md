@@ -119,7 +119,7 @@ The `olist-landing-queue` acts as the event-driven backbone of the ingestion lay
 - **300-second visibility timeout** ensures the Databricks job has sufficient overhead to commit the batch before any message re-delivery occurs, maintaining strict processing integrity during compute transitions
 - **4-day retention period** ensures data persistence and recoverability during extended compute transitions, maintaining strict processing integrity."
 
-<img width="1104" height="503" alt="Screenshot 2026-04-15 102201" src="https://github.com/user-attachments/assets/f795ee35-75de-4823-a057-847f110f2cf7" />
+<img width="1804" height="703" alt="Screenshot 2026-04-15 102201" src="https://github.com/user-attachments/assets/f795ee35-75de-4823-a057-847f110f2cf7" />
 <img width="1804" height="703" alt="image" src="https://github.com/user-attachments/assets/cef2464d-e1ab-4ebb-a994-ce31bb7cf0d7" />
 <img width="1804" height="703" alt="Screenshot 2026-04-15 102738" src="https://github.com/user-attachments/assets/b6148738-f82c-4cec-bd1c-b609aca203a2" />
 
