@@ -1,0 +1,8 @@
+{
+  "version": "4.0",
+  "datasetReference": {
+    "byPath": {
+      "path": "../olist_ecommerce_executive_dashboard.SemanticModel"
+    }
+  }
+}

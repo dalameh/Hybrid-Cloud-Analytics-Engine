@@ -1,0 +1,166 @@
+table dim_customer
+	lineageTag: 8525d88f-aad9-4717-80d0-8867033e0f3d
+
+	column customer_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 1e51cb2b-fdb7-4b60-86b4-bceac0489a73
+		summarizeBy: none
+		sourceColumn: customer_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: b7746d20-7f34-4cdb-93fd-9159181e70d4
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_unique_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 614892c4-cc73-45bd-9778-149edb1ad1ad
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_zip_code_prefix
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: bb8c7b24-e239-4f82-84b7-455ccc202b07
+		summarizeBy: none
+		sourceColumn: customer_zip_code_prefix
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_city
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 1c14f5ea-16bf-44d7-814d-30a8df761662
+		summarizeBy: none
+		sourceColumn: customer_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_state
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 74d0eab4-d479-4434-b1b6-24a1dd43cd91
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: customer_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column _silver_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 2de620c3-27a2-4243-9180-85a50b100d94
+		summarizeBy: none
+		sourceColumn: _silver_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column _gold_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 3b0e7438-d6da-41d9-8bf5-9de03c647afb
+		summarizeBy: none
+		sourceColumn: _gold_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column OP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 5bc4e314-acd8-4843-95eb-b2e73cb9ed15
+		summarizeBy: none
+		sourceColumn: OP
+
+		annotation SummarizationSetBy = Automatic
+
+	column AR_H_COMMIT_TIMESTAMP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 64cc7f29-af63-495c-8912-03db7bf03e6c
+		summarizeBy: none
+		sourceColumn: AR_H_COMMIT_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		lineageTag: a07edd60-da93-43fc-87e4-4c6457f15709
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column state_full
+		dataType: string
+		isNullable: false
+		sourceProviderType: nvarchar(max)
+		lineageTag: 4300bc50-ea68-4d71-bf20-04a1bad9f626
+		summarizeBy: none
+		sourceColumn: state_full
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: directQuery
+		source = ```
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_customer_View = gold_Schema{[Name="dim_customer",Kind="View"]}[Data],
+				    #"Added Custom" = Table.AddColumn(dim_customer_View, "state_brazil", each "Brazil - " & [customer_state]),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"state_brazil"}),
+				    #"Added Custom1" = Table.AddColumn(#"Removed Columns", "country", each "Brazil"),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "state_full", each 
+				    if [customer_state] = "SP" then "São Paulo"
+				    else if [customer_state] = "RJ" then "Rio de Janeiro"
+				    else if [customer_state] = "MG" then "Minas Gerais"
+				    else if [customer_state] = "RS" then "Rio Grande do Sul"
+				    else if [customer_state] = "PR" then "Paraná"
+				    else if [customer_state] = "SC" then "Santa Catarina"
+				    else if [customer_state] = "BA" then "Bahia"
+				    else if [customer_state] = "GO" then "Goiás"
+				    else if [customer_state] = "PE" then "Pernambuco"
+				    else if [customer_state] = "CE" then "Ceará"
+				    else if [customer_state] = "PA" then "Pará"
+				    else if [customer_state] = "MA" then "Maranhão"
+				    else if [customer_state] = "MT" then "Mato Grosso"
+				    else if [customer_state] = "MS" then "Mato Grosso do Sul"
+				    else if [customer_state] = "ES" then "Espírito Santo"
+				    else if [customer_state] = "PB" then "Paraíba"
+				    else if [customer_state] = "RN" then "Rio Grande do Norte"
+				    else if [customer_state] = "AL" then "Alagoas"
+				    else if [customer_state] = "PI" then "Piauí"
+				    else if [customer_state] = "DF" then "Distrito Federal"
+				    else if [customer_state] = "SE" then "Sergipe"
+				    else if [customer_state] = "RO" then "Rondônia"
+				    else if [customer_state] = "AC" then "Acre"
+				    else if [customer_state] = "AM" then "Amazonas"
+				    else if [customer_state] = "RR" then "Roraima"
+				    else if [customer_state] = "AP" then "Amapá"
+				    else if [customer_state] = "TO" then "Tocantins"
+				    else [customer_state],
+				    type text
+				)
+				in
+				    #"Added Custom2"
+				```
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

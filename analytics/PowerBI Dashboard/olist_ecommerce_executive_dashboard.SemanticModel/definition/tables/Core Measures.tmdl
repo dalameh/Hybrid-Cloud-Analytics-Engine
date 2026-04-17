@@ -1,0 +1,63 @@
+table 'Core Measures'
+	lineageTag: 32c25314-05c8-437d-a211-8f5fd5ace32f
+
+	measure 'Total GMV' = SUM('fact_order_items'[gmv_item])
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 98d41490-8311-4d38-a64e-342ef9590ce5
+
+	measure 'Total Orders' = DISTINCTCOUNT('fact_order_items'[order_id])
+		formatString: 0.00
+		lineageTag: 7b5d9f76-66f8-428f-8033-0a0946fae3cd
+
+	measure 'Total Customers' = DISTINCTCOUNT('dim_customer'[customer_unique_id])
+		formatString: 0.00
+		lineageTag: 353b1c18-3b21-4506-a201-36097328b92c
+
+	measure AOV = [Total GMV] / [Total Orders]
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 1695201b-2fe6-4b0b-a43b-fa923139602d
+
+	measure CSAT = AVERAGE('fact_reviews'[review_score])
+		lineageTag: ccff1497-c9ae-4baf-b80c-f36bd1874038
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'On-Time Delivery %' =
+			
+			DIVIDE(
+			    COUNTROWS(FILTER('dim_order', 'dim_order'[is_on_time] = TRUE())),
+			    COUNTROWS(FILTER('dim_order', 'dim_order'[is_delivered] = TRUE()))
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 18280b5f-c3f4-4201-bdea-570b4200ba5d
+
+	measure 'Total Payment Value' = SUM(fact_payments[payment_value])
+		lineageTag: 49b51c7c-0f67-4837-9b87-4e1f2cad3b4f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Seller Count' = DISTINCTCOUNT(fact_order_items[seller_id])
+		formatString: 0
+		lineageTag: f8e4f486-18ed-4d8d-bed4-f80f7842f808
+
+	column Measures
+		dataType: string
+		lineageTag: b47eba6b-aedf-4ded-a6e8-c5fb98bef20b
+		summarizeBy: none
+		sourceColumn: Measures
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Core Measures' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Measures = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Measures", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

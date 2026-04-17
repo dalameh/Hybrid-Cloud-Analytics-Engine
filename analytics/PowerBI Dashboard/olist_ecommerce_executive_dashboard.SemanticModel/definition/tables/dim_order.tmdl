@@ -1,0 +1,211 @@
+table dim_order
+	lineageTag: 0751ce42-7afb-43b0-95d2-f4e2c8499c23
+
+	column order_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 8b6c6145-7fc1-47cd-aaf8-c25a76c87774
+		isDefaultLabel
+		summarizeBy: none
+		sourceColumn: order_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 1788332e-e63d-45a3-901b-77848e44e1ea
+		summarizeBy: sum
+		sourceColumn: customer_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchase_date_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 1faaeafa-6413-411c-aef7-5386de7987cc
+		summarizeBy: sum
+		sourceColumn: purchase_date_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: be3a10a6-54c4-4119-9eaa-46ca1f5c4d31
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 775a6452-4090-4fd7-ac3c-ea8a3e30d08d
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_status
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 2976883f-3cdf-4a18-a62f-bee9252d0019
+		summarizeBy: none
+		sourceColumn: order_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_purchase_timestamp
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: d984aac2-a343-47e6-8183-8eb0c6494408
+		summarizeBy: none
+		sourceColumn: order_purchase_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_approved_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 6f911669-af46-4a8d-a279-52cf28edd801
+		summarizeBy: none
+		sourceColumn: order_approved_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_carrier_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: b9054180-5e00-4a06-a6ed-5b9fe49e7a1b
+		summarizeBy: none
+		sourceColumn: order_delivered_carrier_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_delivered_customer_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: b4489bb3-befe-42db-bfcd-3b4d3851ae79
+		summarizeBy: none
+		sourceColumn: order_delivered_customer_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_estimated_delivery_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: c44f09c6-a17e-4b1b-9a69-72216be424b6
+		summarizeBy: none
+		sourceColumn: order_estimated_delivery_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_days
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 0a77f639-2b37-4b4c-bd9d-6dc375348a0c
+		summarizeBy: sum
+		sourceColumn: delivery_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column estimated_days
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 0dd01542-c098-43fc-890a-9f61a780c948
+		summarizeBy: sum
+		sourceColumn: estimated_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column delivery_delta_days
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 70cef9c3-2fdb-4d91-b177-aec37fb500cf
+		summarizeBy: sum
+		sourceColumn: delivery_delta_days
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_on_time
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: b56d2ecc-12a8-4b79-ac9f-39b71775e28f
+		summarizeBy: none
+		sourceColumn: is_on_time
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_delivered
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 5f5b885c-f06a-489b-98e0-d5f3fd01f5c7
+		summarizeBy: none
+		sourceColumn: is_delivered
+
+		annotation SummarizationSetBy = Automatic
+
+	column _silver_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: ce675372-c345-4718-9fe5-bc4e90170089
+		summarizeBy: none
+		sourceColumn: _silver_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column _gold_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: e864bfd8-b2fe-435b-946a-f02dd612d101
+		summarizeBy: none
+		sourceColumn: _gold_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column OP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: caf1f33d-bdfb-4524-8db3-7a08e27eb81e
+		summarizeBy: none
+		sourceColumn: OP
+
+		annotation SummarizationSetBy = Automatic
+
+	column AR_H_COMMIT_TIMESTAMP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: fe8a39a5-47ff-42ad-a21a-42626d8f12c8
+		summarizeBy: none
+		sourceColumn: AR_H_COMMIT_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_order = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_order_View = gold_Schema{[Name="dim_order",Kind="View"]}[Data]
+				in
+				    dim_order_View
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,171 @@
+table fact_payments
+	lineageTag: 83d4a21d-2a3b-4ca6-9699-5c1f73fb2c54
+
+	column payment_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 17810bce-2a3e-4b78-91ac-b1894050a7f6
+		summarizeBy: sum
+		sourceColumn: payment_sk
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 259a23ff-8a1d-45b9-9174-25003a0ba73f
+		summarizeBy: none
+		sourceColumn: order_sk
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchase_date_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: da43aabd-8cc6-4d0a-9564-c14fa89f134e
+		summarizeBy: none
+		sourceColumn: purchase_date_sk
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: b88ff7bc-f13a-4a58-9c8e-1cb768264ffe
+		summarizeBy: none
+		sourceColumn: order_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_sequential
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: bcd81b86-2e07-428b-baf7-555f8f596606
+		summarizeBy: sum
+		sourceColumn: payment_sequential
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_type
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 35e90e13-ba41-47e1-a00d-447a5709c195
+		summarizeBy: none
+		sourceColumn: payment_type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_installments
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 08841d5a-287d-4a68-b209-8e68372dfca0
+		summarizeBy: sum
+		sourceColumn: payment_installments
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column payment_value
+		dataType: double
+		sourceProviderType: double
+		lineageTag: 625f5c02-d7db-4e80-94ef-c5f04efa63b6
+		summarizeBy: sum
+		sourceColumn: payment_value
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column monthly_instalment_value
+		dataType: double
+		sourceProviderType: double
+		lineageTag: dcdcf7bf-49ca-41d8-a646-3ba6005aa7d9
+		summarizeBy: sum
+		sourceColumn: monthly_instalment_value
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column _silver_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 08db7227-8dbf-4bcc-84ed-11bd59bb4854
+		summarizeBy: none
+		sourceColumn: _silver_processed_at
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column _gold_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 66d97ee3-0810-4c22-836b-4540f498fe8c
+		summarizeBy: none
+		sourceColumn: _gold_processed_at
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column OP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: df96080b-a33a-416d-837e-a6fbd316e70e
+		summarizeBy: none
+		sourceColumn: OP
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column AR_H_COMMIT_TIMESTAMP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: ca7a5d44-f6ec-4543-afeb-f959f4d97868
+		summarizeBy: none
+		sourceColumn: AR_H_COMMIT_TIMESTAMP
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_payments = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    fact_payments_View = gold_Schema{[Name="fact_payments",Kind="View"]}[Data]
+				in
+				    fact_payments_View
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

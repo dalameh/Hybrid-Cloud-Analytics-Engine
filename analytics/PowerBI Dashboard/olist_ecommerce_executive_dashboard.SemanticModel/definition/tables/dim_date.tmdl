@@ -1,0 +1,174 @@
+table dim_date
+	lineageTag: ffa6a818-8246-4307-9765-f80a4bf4230a
+
+	column date_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 3fdc97c7-afa5-4062-8198-fec87af78831
+		summarizeBy: none
+		sourceColumn: date_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_actual
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: 52237773-196e-4721-a97c-f50c7d0ed778
+		summarizeBy: none
+		sourceColumn: date_actual
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column year
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 70d27eaf-baad-48b1-90be-351f86459b6c
+		summarizeBy: sum
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 432e0176-de12-4187-942c-b2637c915b56
+		summarizeBy: sum
+		sourceColumn: quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column month
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: d310e8f1-6a89-4a86-b17d-3159f5deb8b9
+		summarizeBy: sum
+		sourceColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_name
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: eca7b131-dc25-44db-9bf8-2ca850e6e739
+		summarizeBy: none
+		sourceColumn: month_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_short
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: a8cfd53c-8c91-458e-8f74-fa1a6b7f52be
+		summarizeBy: none
+		sourceColumn: month_short
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 1b84daad-9ddf-432b-b4f7-4c8da53c66a5
+		summarizeBy: none
+		sourceColumn: year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column week_of_year
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 181727e8-2f98-4b0a-9a8a-ce19daec3265
+		summarizeBy: sum
+		sourceColumn: week_of_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_month
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 4a3e8eef-e502-44ba-b52f-48ad239712ea
+		summarizeBy: sum
+		sourceColumn: day_of_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_week
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 2ae67044-5ec7-4d8b-8d4e-bffb34ade244
+		summarizeBy: sum
+		sourceColumn: day_of_week
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_name
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: f5ca514d-2115-40e0-b044-d66b4d0eda6b
+		summarizeBy: none
+		sourceColumn: day_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_short
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 1422eaa1-f256-4d49-9126-7981bd8fdae8
+		summarizeBy: none
+		sourceColumn: day_short
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_weekend
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 702a3c9e-7822-4fc3-bfc5-94107c8559a7
+		summarizeBy: none
+		sourceColumn: is_weekend
+
+		annotation SummarizationSetBy = Automatic
+
+	column fiscal_year
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: af310b98-43c5-4643-a24c-23b8a8595f49
+		summarizeBy: sum
+		sourceColumn: fiscal_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column fiscal_quarter
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f9ed67a1-a9bd-47e1-8c76-72740fa0ae41
+		summarizeBy: sum
+		sourceColumn: fiscal_quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_date_View = gold_Schema{[Name="dim_date",Kind="View"]}[Data]
+				in
+				    dim_date_View
+
+	annotation PBI_ResultType = Table
+

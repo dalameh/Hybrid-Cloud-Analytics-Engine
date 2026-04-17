@@ -1,0 +1,44 @@
+relationship 5d7d3e3b-da16-2ebc-b202-f9b60bc0410e
+	relyOnReferentialIntegrity
+	fromColumn: fact_order_items.customer_sk
+	toColumn: dim_customer.customer_sk
+
+relationship f2e93671-3d74-0ecc-8002-80fc267dbce4
+	fromColumn: fact_order_items.product_sk
+	toColumn: dim_product.product_sk
+
+relationship 9609505f-0cc4-1292-3ffe-53b287c49bf8
+	relyOnReferentialIntegrity
+	fromColumn: fact_order_items.seller_sk
+	toColumn: dim_seller.seller_sk
+
+relationship 7f2a3c75-ec09-1709-41f7-97e813b0483f
+	relyOnReferentialIntegrity
+	fromColumn: fact_order_items.purchase_date_sk
+	toColumn: dim_date.date_sk
+
+relationship 2003c91d-3f94-c2b1-8843-009af25fbe1f
+	relyOnReferentialIntegrity
+	fromColumn: fact_order_items.order_sk
+	toColumn: dim_order.order_sk
+
+relationship b3aa3f7d-2cc1-81f5-d0eb-29caeccd1161
+	relyOnReferentialIntegrity
+	fromColumn: fact_payments.order_sk
+	toColumn: dim_order.order_sk
+
+relationship b5381b0d-2c48-79a3-a2c8-77d1c7026c2a
+	relyOnReferentialIntegrity
+	fromColumn: fact_payments.purchase_date_sk
+	toColumn: dim_date.date_sk
+
+relationship f02e3dc4-ee40-daa2-e584-1872901bdc96
+	relyOnReferentialIntegrity
+	fromColumn: fact_reviews.order_sk
+	toColumn: dim_order.order_sk
+
+relationship 0813d4bd-a3b1-2fde-f167-5756fa94bfff
+	relyOnReferentialIntegrity
+	fromColumn: fact_reviews.purchase_date_sk
+	toColumn: dim_date.date_sk
+

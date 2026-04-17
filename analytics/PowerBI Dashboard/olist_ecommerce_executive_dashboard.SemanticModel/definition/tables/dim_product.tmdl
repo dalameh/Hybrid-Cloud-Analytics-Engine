@@ -1,0 +1,167 @@
+table dim_product
+	lineageTag: 4b6f992c-bba2-4929-88bf-575d1f1e66ff
+
+	column product_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: d00ff178-6405-46d7-a896-a6e5c708a3e1
+		summarizeBy: none
+		sourceColumn: product_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 1c9dd9f0-7f0c-45db-a5a4-d17fdc942ed0
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_category_name
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 3f048003-7569-4070-bed2-8b15eebae8a4
+		summarizeBy: none
+		sourceColumn: product_category_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_category_name_english
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 73ece875-c2a6-4944-860d-fe245482b600
+		summarizeBy: none
+		sourceColumn: product_category_name_english
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name_length
+		dataType: double
+		sourceProviderType: double
+		lineageTag: e3ff9280-dda3-498e-94e9-e7e2618fbd40
+		summarizeBy: none
+		sourceColumn: product_name_length
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_description_length
+		dataType: double
+		sourceProviderType: double
+		lineageTag: 30743841-1b2c-48fe-bc63-4396ca90df1c
+		summarizeBy: none
+		sourceColumn: product_description_length
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_photos_qty
+		dataType: double
+		sourceProviderType: double
+		lineageTag: 5fa5ce76-05a5-44e6-9c72-3173cdc5dc4a
+		summarizeBy: none
+		sourceColumn: product_photos_qty
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_weight_g
+		dataType: double
+		sourceProviderType: double
+		lineageTag: f363d8fb-6267-40e1-927c-14123ab3ebdc
+		summarizeBy: none
+		sourceColumn: product_weight_g
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_length_cm
+		dataType: double
+		sourceProviderType: double
+		lineageTag: 6059448b-3909-495e-b54b-d3b839caf96f
+		summarizeBy: none
+		sourceColumn: product_length_cm
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_height_cm
+		dataType: double
+		sourceProviderType: double
+		lineageTag: b7472245-d0c5-4571-8140-39052a02fa02
+		summarizeBy: none
+		sourceColumn: product_height_cm
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_width_cm
+		dataType: double
+		sourceProviderType: double
+		lineageTag: e46c5fdc-f7bb-4622-a48b-50d95a2d93ac
+		summarizeBy: none
+		sourceColumn: product_width_cm
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column _silver_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 88ea6c16-7040-4847-ae9b-c4f7e445334e
+		summarizeBy: none
+		sourceColumn: _silver_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column _gold_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 5a736469-dcf3-4dc6-b1ed-35db208207cf
+		summarizeBy: none
+		sourceColumn: _gold_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column OP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 0beb406d-1a80-4950-a1d4-e15bda0a1237
+		summarizeBy: none
+		sourceColumn: OP
+
+		annotation SummarizationSetBy = Automatic
+
+	column AR_H_COMMIT_TIMESTAMP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 21c7d6d6-ae48-4757-8123-ef0b8df1054f
+		summarizeBy: none
+		sourceColumn: AR_H_COMMIT_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_product = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_product_View = gold_Schema{[Name="dim_product",Kind="View"]}[Data]
+				in
+				    dim_product_View
+
+	annotation PBI_ResultType = Table
+

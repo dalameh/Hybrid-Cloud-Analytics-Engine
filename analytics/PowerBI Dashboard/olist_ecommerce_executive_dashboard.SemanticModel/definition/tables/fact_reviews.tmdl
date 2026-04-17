@@ -1,0 +1,155 @@
+table fact_reviews
+	lineageTag: c9011e4e-9f90-4d2a-9eeb-6f54d1d31f12
+
+	column review_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 42a8826e-be4c-417f-8e7f-429bae8aa28a
+		summarizeBy: sum
+		sourceColumn: review_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 00cbec88-f7eb-4317-8ef4-f3d3b8297d5e
+		summarizeBy: none
+		sourceColumn: order_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchase_date_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: a4ec3279-1a5a-455e-9adb-3f8ca268dea0
+		summarizeBy: none
+		sourceColumn: purchase_date_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 15f9beaa-e289-4648-b63b-f1bcfd9d5629
+		summarizeBy: none
+		sourceColumn: review_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 72d3ce61-90c0-45f6-b778-7409a402dcbe
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_score
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: b43152f1-2689-47b5-924c-388e13e96c5b
+		summarizeBy: sum
+		sourceColumn: review_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column review_creation_date
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: aa2d4a23-9387-4a53-ac5e-c6867ecb0099
+		summarizeBy: none
+		sourceColumn: review_creation_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column review_answer_timestamp
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 361d7081-0bdd-47cb-b241-d3c0585f1b58
+		summarizeBy: none
+		sourceColumn: review_answer_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_comment_title
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: f4d7fadc-dbfb-4085-98c4-e3e06f159478
+		summarizeBy: none
+		sourceColumn: has_comment_title
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_comment_message
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 466a30ca-c155-4fa6-8a79-6f2b7186dab1
+		summarizeBy: none
+		sourceColumn: has_comment_message
+
+		annotation SummarizationSetBy = Automatic
+
+	column _silver_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 0a603224-efb3-4ff3-846f-ef02b23b99c6
+		summarizeBy: none
+		sourceColumn: _silver_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column _gold_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 4df3b468-04f1-45f9-951d-aa5cf1782de6
+		summarizeBy: none
+		sourceColumn: _gold_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column OP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: f0031931-3671-4d68-95ec-ede051a0a722
+		summarizeBy: none
+		sourceColumn: OP
+
+		annotation SummarizationSetBy = Automatic
+
+	column AR_H_COMMIT_TIMESTAMP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 60ae6440-8d3d-4911-8f8f-2ec14dfa02ff
+		summarizeBy: none
+		sourceColumn: AR_H_COMMIT_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_reviews = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    fact_reviews_View = gold_Schema{[Name="fact_reviews",Kind="View"]}[Data]
+				in
+				    fact_reviews_View
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

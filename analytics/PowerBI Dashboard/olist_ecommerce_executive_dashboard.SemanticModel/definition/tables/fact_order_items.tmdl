@@ -1,0 +1,193 @@
+table fact_order_items
+	lineageTag: 50b1a59e-4536-4704-915f-2d7b87da4935
+
+	column order_item_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: c2e38ad2-58cc-4737-85c2-48dab25e24f2
+		summarizeBy: sum
+		sourceColumn: order_item_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: dc1af08d-b74e-4fac-8362-9bee1ea641c7
+		summarizeBy: none
+		sourceColumn: order_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: feba0a75-ef36-442f-8ef8-4aba2fb31e0f
+		summarizeBy: none
+		sourceColumn: product_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 92564252-f347-45f3-abb0-d37135d27068
+		summarizeBy: none
+		sourceColumn: seller_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: a45522bd-92d3-426e-932f-eadb7e35f088
+		summarizeBy: none
+		sourceColumn: customer_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column purchase_date_sk
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 3868aab6-582d-4716-a7d9-2e4c19863085
+		summarizeBy: none
+		sourceColumn: purchase_date_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 4a84d0d3-da67-4d1d-99aa-3571961b7a19
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_item_id
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: e94fcf63-8d29-4a65-919d-0b4f80d42e3a
+		summarizeBy: sum
+		sourceColumn: order_item_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: e7815b17-389a-4eb2-ac33-62356f1e70e7
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 9887b6dd-6041-4623-9df5-90df92d800fb
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column price
+		dataType: double
+		sourceProviderType: double
+		lineageTag: 417c7fef-863d-4742-8929-5b9a8411aa61
+		summarizeBy: sum
+		sourceColumn: price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column freight_value
+		dataType: double
+		sourceProviderType: double
+		lineageTag: 80fa3cd3-2759-4c23-956a-185e9395f115
+		summarizeBy: sum
+		sourceColumn: freight_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column gmv_item
+		dataType: double
+		sourceProviderType: double
+		lineageTag: 2f8b8521-d954-41bb-b0d3-362e9ad8c5bb
+		summarizeBy: sum
+		sourceColumn: gmv_item
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column shipping_limit_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 6ae0658e-f936-4c95-9c04-59483de79eeb
+		summarizeBy: none
+		sourceColumn: shipping_limit_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column _silver_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 4d06f372-5c44-42fd-9af8-bffcfe241750
+		summarizeBy: none
+		sourceColumn: _silver_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column _gold_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: d60ea84b-8697-4126-b223-2827e748bbca
+		summarizeBy: none
+		sourceColumn: _gold_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column OP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 511ef90c-e7b5-44e8-b0b6-ecce7625668f
+		summarizeBy: none
+		sourceColumn: OP
+
+		annotation SummarizationSetBy = Automatic
+
+	column AR_H_COMMIT_TIMESTAMP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: fba64c83-dd09-4e9f-9ff7-9bc3e6d2e5d6
+		summarizeBy: none
+		sourceColumn: AR_H_COMMIT_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_order_items = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    fact_order_items_View = gold_Schema{[Name="fact_order_items",Kind="View"]}[Data]
+				in
+				    fact_order_items_View
+
+	annotation PBI_ResultType = Table
+

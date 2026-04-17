@@ -1,0 +1,100 @@
+table dim_seller
+	lineageTag: c1e9d9b1-780d-4bc0-8e4f-e428a9bf80c6
+
+	column seller_sk
+		dataType: int64
+		isKey
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 43fed5a0-6f26-45d7-adc2-1853139e5cc6
+		summarizeBy: none
+		sourceColumn: seller_sk
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 31886f51-c32f-49b4-b92f-c9a35c58ef63
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_zip_code_prefix
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: be09c55b-3412-436d-b252-12e4cc0d3026
+		summarizeBy: none
+		sourceColumn: seller_zip_code_prefix
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_city
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: f0594c80-d229-4862-94bc-4abf39a8fab8
+		summarizeBy: none
+		sourceColumn: seller_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_state
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: e6be511a-921a-4bbe-888f-b1e28dcc278f
+		summarizeBy: none
+		sourceColumn: seller_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column _silver_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 7ab48626-1b26-44e7-a0b9-6a70e666c109
+		summarizeBy: none
+		sourceColumn: _silver_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column _gold_processed_at
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: c03fd4b6-9cc2-406e-842d-bb6850b88b21
+		summarizeBy: none
+		sourceColumn: _gold_processed_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column OP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 5a81b60b-0eb8-4506-90e1-ad191b829ab0
+		summarizeBy: none
+		sourceColumn: OP
+
+		annotation SummarizationSetBy = Automatic
+
+	column AR_H_COMMIT_TIMESTAMP
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: e1db0323-44a1-4e8f-b57d-4994f974b9ee
+		summarizeBy: none
+		sourceColumn: AR_H_COMMIT_TIMESTAMP
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_seller = m
+		mode: directQuery
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-fae87c5d-4b7b.cloud.databricks.com", "/sql/1.0/warehouses/f9c9e695c54edf40", [Catalog = "", Database = ""]),
+				    olist_prod_Database = Source{[Name="olist_prod",Kind="Database"]}[Data],
+				    gold_Schema = olist_prod_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_seller_View = gold_Schema{[Name="dim_seller",Kind="View"]}[Data]
+				in
+				    dim_seller_View
+
+	annotation PBI_ResultType = Table
+
