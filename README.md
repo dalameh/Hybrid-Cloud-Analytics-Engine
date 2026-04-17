@@ -83,7 +83,7 @@ Created using **LucidChart**: https://lucid.app/lucidchart/516afc94-83d1-405c-98
 
 <div align="center">
   <h3>Project Demo</h3>
-  <video src="https://github.com/dalameh/Hybrid-Cloud-Analytics-Engine/releases/latest/download/Hybrid+Cloud+Analytics+Engine+Dev+Demo.mp4" width="100%" controls>
+  <video src="[https://github.com/dalameh/Hybrid-Cloud-Analytics-Engine/releases/latest/download/Hybrid+Cloud+Analytics+Engine+Dev+Demo.mp4](https://github.com/dalameh/Hybrid-Cloud-Analytics-Engine/releases/download/v1.0.0/Hybrid.Cloud.Analytics.Engine.Dev.Demo.mp4)" width="100%" controls>
     Your browser does not support the video tag.
   </video>
 </div>
