@@ -318,8 +318,8 @@ The pipeline runs on a **daily cron schedule at midnight** via a Databricks Work
 
 After each successful pipeline run, the **Lakeflow Job** automatically refreshes the **Gold star schema** tables and aggregations used to contruct the published Databricks Dashboard, ensuring the published Databricks Dashboard reflects the most recent downstream business intelligence.
 
-<img width="1732" height="680" alt="image" src="https://github.com/user-attachments/assets/5f080744-8a88-4435-a9a3-7c5c37227356" />
-<img width="1718" height="541" alt="image" src="https://github.com/user-attachments/assets/c29cf39d-e40e-4306-945d-d51f2cf9a1aa" />
+<img width="1871" height="675" alt="image" src="https://github.com/user-attachments/assets/30c2d5f3-a7ab-4211-9210-9994230431dd" />
+<img width="1871" height="538" alt="image" src="https://github.com/user-attachments/assets/732bcb72-fc7b-4b0e-bf36-7aa7ac7929aa" />
 
 ---
 
