@@ -338,12 +338,12 @@ After each successful pipeline run, the **Power BI REST API** is called using a 
 |:---|:---|:---|
 | **Ingestion** | Python · Boto3 | CDC agent simulating continuous on-prem ERP sync |
 | **Infrastructure** | AWS CDK | Reproducible IaC for S3, SNS, SQS, IAM |
-| **Storage** | AWS S3 | Hive-partitioned raw landing zone with lifecycle management |
+| **Storage** | AWS S3 | Hive-partitioned raw landing zone with lifecycle management · Lakehouse root storage (`_unity_storage`) |
 | **Events** | AWS SNS | Fan-out decoupling between ingestion and compute |
 | **Queue** | AWS SQS + DLQ | Durable work buffer with fault-tolerant dead-lettering |
-| **ETL** | Databricks DLT · PySpark | Medallion architecture · Auto Loader · checkpointing |
-| **Orchestration** | Databricks Workflows | Scheduled daily execution · task chaining · alerting |
-| **BI** | Power BI | Executive dashboard · automated semantic model refresh |
+| **ETL** | LakeFlow Pipeline · Databricks DLT · PySpark | Medallion architecture · Auto Loader · checkpointing |
+| **Orchestration** | LakeFlow Jobs | Scheduled daily execution · task chaining · alerting |
+| **BI** | Databricks Dashboards · Power BI | Executive dashboard · automated semantic model refresh |
 
 ---
 
