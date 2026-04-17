@@ -53,9 +53,9 @@ def read_landing_table(table_name: str) -> DataFrame:
 
     return (
         spark.readStream
-        .format("cloudFiles")
+        .format("cloudFiles") # Auto Loader
         .option("cloudFiles.format", "parquet")
-        .option("cloudFiles.useManagedFileEvents", "true")
+        .option("cloudFiles.useManagedFileEvents", "true") # retrieve from `olist_landing_queue`
         .option("cloudFiles.partitionColumns", "year,month,day")
         .load(landing_path)
     )
