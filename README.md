@@ -303,7 +303,7 @@ This layer additionally adds a metadata column (`_gold_processed_at`) for **line
 
 The pipeline runs on a **daily cron schedule at midnight** via a Databricks Workflow. The DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting for the next morning. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops. The job chains two tasks:
 
-<img width="1654" height="647" alt="image" src="https://github.com/user-attachments/assets/4a4de16d-5733-48b0-a749-aa3f688478a7" />
+<img width="1583" height="442" alt="image" src="https://github.com/user-attachments/assets/6b7972a4-4de5-4883-8350-a3e1fc9b0590" />
 
 ### Full Load:
 <img width="1337" height="826" alt="image" src="https://github.com/user-attachments/assets/e4467af0-76c7-461c-9c1b-f258596a39d9" />
