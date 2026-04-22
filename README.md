@@ -52,7 +52,7 @@ Olist is a Brazilian e-commerce ecosystem that acts as a strategic integrator, c
 
 ### The Challenge: Breaking the Analytical Bottleneck
 
-The enterprise is currently tethered to an **on-premise ERP monolith** that was designed for transactional stability, not modern analytical scale. This legacy architecture forces business intelligence queries to compete with real-time operations for the same hardware resources, creating a performance bottleneck that degrades OLTP performance, risking system instability and downtime during peak high-volume retail periods.
+The enterprise is currently tethered to an **on-premise ERP monolith** that was designed for transactional stability, not modern analytical scale. This legacy architecture forces business intelligence reporting queries to compete with real-time operations for the same hardware resources, creating a performance bottleneck that degrades OLTP performance, risking system instability and downtime during peak high-volume retail periods.
 
 To unlock the next phase of growth, leadership is pivoting to a **Hybrid-Cloud integration strategy** to migrate and synchronize transactional data into a **unified cloud data lakehouse**. By decoupling analytical workloads from the on-premise core, the enterprise aims to:
 
@@ -310,7 +310,7 @@ This layer additionally adds a metadata column (`_gold_processed_at`) for **line
 
 ## 🕛 Orchestration — Databricks Lakeflow Jobs
 
-The pipeline runs on a **daily cron schedule at midnight** via a Databricks Workflow. The DLT pipeline processes all accumulated events in a single nightly batch — producing a fully reconciled, consistent Gold layer for leadership reporting for the next morning. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops. The job chains two tasks:
+The pipeline runs on a **daily cron schedule at midnight (time of lowest traffic)** via a Databricks Workflow. The DLT pipeline processes all accumulated events in a single nightly batch to ensure data integrity — producing a fully reconciled, consistent Gold layer for leadership reporting for the next morning. Retries up to 2×, with a 10-minute delay, are configured on Task 1 before the workflow alerts and stops. The job chains two tasks:
 
 <img width="1583" height="442" alt="image" src="https://github.com/user-attachments/assets/6b7972a4-4de5-4883-8350-a3e1fc9b0590" />
 
